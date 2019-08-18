@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using HelloSocNetw_DAL.Entities;
 using HelloSocNetw_DAL.Interfaces;
 
@@ -11,7 +13,7 @@ namespace HelloSocNetw_DAL
         {
             if (!unitOfWork.UserManager.Users.Any())
             {
-                var countries = new HashSet<Country>
+                var countries = new HashSet<Country>()
                 {
                     new Country() {CountryName = "Ukraine"},
                     new Country() {CountryName = "Russia"},
@@ -22,22 +24,35 @@ namespace HelloSocNetw_DAL
                     new Country() {CountryName = "Moldova"},
                     new Country() {CountryName = "Georgia"},
                     new Country() {CountryName = "Poland"}
-                };
-
-                var userInfo1 = new UserInfo()
-                {
-                    FirstName = "Dmitriy",
-                    LastName = "Ivanov",
-                    Gender = "Male", 
-                    Country = countries.First()
-                };
-
-                var user1 = new AppIdentityUser() { Email = "user1@mail.ru", UserInfo = userInfo1};
+                };;
 
                 unitOfWork.Countries.AddCountries(countries);
-                unitOfWork.UsersInfo.AddUserInfo(userInfo1);
-                unitOfWork.UserManager.CreateAsync(user1);
                 unitOfWork.SaveChangesAsync();
+
+                var user1 = new AppIdentityUser() {Email = "addDbInitiali45645645zer@mail.ru", UserName = "Hofman"};
+
+                unitOfWork.UserManager.CreateAsync(user1, "qwSD12490()");
+
+                var role = new AppUserRole() { Name = "Admin" };
+                unitOfWork.RoleManager.CreateAsync(role);
+
+                unitOfWork.UserManager.AddToRoleAsync(user1, role.Name);
+
+                var userInfo = new UserInfo()
+                {
+                    FirstName = "Illia",
+                    LastName = "Samko",
+                    Country = countries.First(),
+                    AppIdentityUser = user1,
+                    DateOfBirth =  new DateTime(2000, 5, 11),
+                    Gender = "Male"
+                };
+
+                unitOfWork.UsersInfo.AddUserInfo(userInfo);
+                unitOfWork.SaveChangesAsync();
+
+                user1.UserInfo = userInfo;
+                unitOfWork.UserManager.UpdateAsync(user1);
             }
         }
     }

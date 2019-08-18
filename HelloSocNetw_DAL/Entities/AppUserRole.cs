@@ -2,7 +2,7 @@
 
 namespace HelloSocNetw_DAL.Entities
 {
-    public class AppUserRole : IdentityRole
+    public class AppUserRole : IdentityRole<int>
     {
 
     }

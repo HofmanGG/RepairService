@@ -1,18 +1,20 @@
 ﻿using System.Threading.Tasks;
 using HelloSocNetw_DAL.EFRepositories;
+using HelloSocNetw_DAL.Entities;
 using HelloSocNetw_DAL.Identity;
 using HelloSocNetw_DAL.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace HelloSocNetw_DAL.UnitsOfWork
 {
-    public class UnitOfWork : IUnitOfWork
+    public class UnitOfWork: IUnitOfWork
     {
         private readonly SocNetwContext _context;
 
         public UnitOfWork(
             SocNetwContext context,
-            AppUserManager userManager,
-            AppRoleManager roleManager
+            UserManager<AppIdentityUser> userManager,
+            RoleManager<AppUserRole> roleManager
             )
         {
             _context = context;
@@ -26,9 +28,12 @@ namespace HelloSocNetw_DAL.UnitsOfWork
         private ICountryRepository _countryRepository;
         public ICountryRepository Countries => _countryRepository ?? (_countryRepository = new EfCountryRepository(_context));
 
+        private IPictureRepository _pictureRepository;
+        public IPictureRepository Pictures => _pictureRepository ?? (_pictureRepository = new EfPictureRepository(_context));
+
         //custom identity managers
-        public AppUserManager UserManager { get; }
-        public AppRoleManager RoleManager { get; }
+        public UserManager<AppIdentityUser> UserManager { get; }
+        public RoleManager<AppUserRole> RoleManager { get; }
 
         public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
 

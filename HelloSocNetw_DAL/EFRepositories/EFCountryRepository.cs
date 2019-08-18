@@ -23,15 +23,15 @@ namespace HelloSocNetw_DAL.EFRepositories
 
         public void AddCountries(IEnumerable<Country> countries) => _context.Countries.AddRange(countries);
 
-        public void RemoveCountry(Country country) => _context.Countries.Remove(country);
+        public void DeleteCountry(Country country) => _context.Countries.Remove(country);
 
-        public async Task RemoveCountryByIdAsync(int id)
+        public async Task DeleteCountryByIdAsync(int id)
         {
             var country = await GetCountryByIdAsync(id);
-            RemoveCountry(country);
+            _context.Countries.Remove(country);
         }
 
-        public void RemoveCountries(IEnumerable<Country> country) => _context.Countries.RemoveRange(country);
+        public void DeleteCountries(IEnumerable<Country> country) => _context.Countries.RemoveRange(country);
 
         public void UpdateUserInfo(Country country)
         {

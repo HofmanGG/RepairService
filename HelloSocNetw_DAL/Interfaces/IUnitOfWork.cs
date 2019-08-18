@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using HelloSocNetw_DAL.Entities;
 using HelloSocNetw_DAL.Identity;
+using Microsoft.AspNetCore.Identity;
 
 namespace HelloSocNetw_DAL.Interfaces
 {
@@ -8,9 +10,10 @@ namespace HelloSocNetw_DAL.Interfaces
     {
         IUserInfoRepository UsersInfo { get; }
         ICountryRepository Countries { get; }
+        IPictureRepository Pictures { get; }
 
-        AppUserManager UserManager { get; }
-        AppRoleManager RoleManager { get; }
+        UserManager<AppIdentityUser> UserManager { get; }
+        RoleManager<AppUserRole> RoleManager { get; }
 
         Task SaveChangesAsync();
     }

@@ -6,10 +6,9 @@ using HelloSocNetw_DAL.EFRepositories;
 using HelloSocNetw_DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
-
+/*
 namespace HelloSocNetw_NUnitTests.DALTests.EFRepositoriesTests
 {
-
     [TestFixture]
     class EFUserInfoRepositoryTests
     {
@@ -295,7 +294,7 @@ namespace HelloSocNetw_NUnitTests.DALTests.EFRepositoriesTests
 
                 context.SaveChanges();
 
-                await userInfoRep.DeleteSubscription(1, 2);
+                await userInfoRep.DeleteSubscriptionAsync(1, 2);
 
                 context.SaveChanges();
             }
@@ -332,7 +331,7 @@ namespace HelloSocNetw_NUnitTests.DALTests.EFRepositoriesTests
 
                 context.SaveChanges();
 
-                await userInfoRep.DeleteFriendship(1, 2);
+                await userInfoRep.DeleteFriendshipAsync(1, 2);
 
                 context.SaveChanges();
             }
@@ -391,3 +390,4 @@ namespace HelloSocNetw_NUnitTests.DALTests.EFRepositoriesTests
         }
     }
 }
+*/

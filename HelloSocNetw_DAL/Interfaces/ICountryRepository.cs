@@ -14,11 +14,11 @@ namespace HelloSocNetw_DAL.Interfaces
 
         void AddCountries(IEnumerable<Country> countries);
 
-        void RemoveCountry(Country country);
+        void DeleteCountry(Country country);
 
-        Task RemoveCountryByIdAsync(int id);
+        Task DeleteCountryByIdAsync(int id);
 
-        void RemoveCountries(IEnumerable<Country> countries);
+        void DeleteCountries(IEnumerable<Country> countries);
 
         void UpdateUserInfo(Country country);
     }

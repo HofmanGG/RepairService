@@ -11,12 +11,10 @@ namespace HelloSocNetw_DAL.Interfaces
     public interface IUserInfoRepository
     {
         Task<UserInfo> SingleOrDefaultUserInfoAsync(Expression<Func<UserInfo, bool>> predicate);
+
         Task<UserInfo> GetUserInfoByIdAsync(int id);
 
-        Task<IEnumerable<Group>> GetUsersInfoAsync(
-            IQueryable<Group> query,
-            int toSkip,
-            int toTake);
+        Task<IEnumerable<UserInfo>> GetUsersInfoAsync(int toSkip, int toTake);
 
         Task<int> GetCountOfUsersInfoAsync();
 
@@ -32,6 +30,8 @@ namespace HelloSocNetw_DAL.Interfaces
 
         void AddUserInfo(UserInfo userInfo);
 
+        void AddUsersInfo(IEnumerable<UserInfo> usersInfo);
+
         Task AddSubscriberByUserIdAndSubIdAsync(int userId, int subId);
 
         Task<IEnumerable<UserInfo>> GetSubscribersByUserIdAsync(int id, int toTake);
@@ -39,6 +39,12 @@ namespace HelloSocNetw_DAL.Interfaces
         Task AddFriendByUsersIdAndSubIdAsync(int firstUserId, int secondUserId);
 
         Task<IEnumerable<UserInfo>> GetFriendsByUserIdAsync(int id, int toTake);
+
+        Task DeleteSubscriptionAsync(int userId, int subId);
+
+        Task DeleteFriendshipAsync(int userId, int friendId);
+
+        Task DeleteUserInfoByUserId(int userId);
 
         void UpdateUserInfo(UserInfo userInfo);
     }

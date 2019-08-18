@@ -3,9 +3,9 @@ using HelloSocNetw_PL.Models;
 
 namespace HelloSocNetw_PL.Validators
 {
-    public class CreateLoginModelValidator: AbstractValidator<LoginModel>
+    public class LoginModelValidator: AbstractValidator<LoginModel>
     {
-        public CreateLoginModelValidator()
+        public LoginModelValidator()
         {
             RuleFor(u => u.Email).EmailAddress();
 

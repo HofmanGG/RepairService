@@ -1,29 +1,24 @@
-﻿using HelloSocNetw_BLL.Interfaces;
+﻿using System;
+using System.Reflection;
+using AutoMapper;
+using BLL.Services;
+using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_BLL.Services;
 using HelloSocNetw_DAL;
+using HelloSocNetw_PL.Infrastructure.MapperProfiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HelloSocNetw_PL.Infrastructure
 {
-    public class DependencyInjections
+    public static class DependencyInjections
     {
-        public DependencyInjections(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
-
-        public IConfiguration Configuration { get; }
-
-        public void ConfigureServices(IServiceCollection services)
+        public static void ConfigurePLServices(this IServiceCollection services)
         {
             // Service dependency injection configuration
-            services.AddScoped<IUserService, IdentityUserService>();
-
-            var connectingString = Configuration.GetConnectionString("HelloDatabase");
-            services.AddDbContextPool<SocNetwContext>(options =>
-                options.UseSqlServer(connectingString));
+            services.AddScoped<IIdentityUserService, IdentityUserService>();
+            services.AddScoped<IUserInfoService, UserInfoService>();
         }
     }
 }

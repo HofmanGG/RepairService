@@ -10,7 +10,7 @@ namespace HelloSocNetw_DAL.Configurations
         {
             builder.HasOne(u => u.AppIdentityUser)
                 .WithOne(a => a.UserInfo)
-                .HasForeignKey<AppIdentityUser>(u => u.UserInfoId);
+                .HasForeignKey<UserInfo>(u => u.AppIdentityUserId);
 
             builder.Property(u => u.FirstName)
                 .HasMaxLength(20)
@@ -22,6 +22,10 @@ namespace HelloSocNetw_DAL.Configurations
 
             builder.Property(u => u.Gender)
                 .IsRequired();
+
+            builder.HasOne(u => u.ProfilePicture)
+                .WithOne(p => p.UserInfo)
+                .HasForeignKey<UserInfo>(u => u.ProfilePictureId);
         }
     }
 }

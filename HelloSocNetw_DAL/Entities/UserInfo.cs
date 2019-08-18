@@ -1,5 +1,8 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HelloSocNetw_DAL.Entities
 {
@@ -12,6 +15,7 @@ namespace HelloSocNetw_DAL.Entities
             Friends = new HashSet<FriendshipTable>();
             Subscribers = new HashSet<SubscribersTable>();
         }
+
         public int UserInfoId { get; set; }
 
         public string FirstName { get; set; }
@@ -19,14 +23,14 @@ namespace HelloSocNetw_DAL.Entities
 
         public DateTime DateOfBirth { get; set; }
 
-        public int Age { get; set; }
-
         public string Gender { get; set; }
 
         public int CountryId { get; set; }
         public virtual Country Country { get; set; }
 
+        public int? ProfilePictureId { get; set; }
         public virtual Picture ProfilePicture { get; set; } 
+
         public virtual ICollection<Picture> Pictures { get; private set; }
 
         public virtual ICollection<Dialog> Dialogs { get; private set; }

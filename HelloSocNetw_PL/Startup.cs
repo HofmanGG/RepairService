@@ -1,14 +1,24 @@
-﻿using AutoMapper;
+﻿using System.Reflection;
+using System.Threading.Tasks;
+using AutoMapper;
 using FluentValidation.AspNetCore;
+using HelloSocNetw_BLL.Infrastructure;
+using HelloSocNetw_BLL.Infrastructure.MapperProfiles;
 using HelloSocNetw_DAL;
 using HelloSocNetw_DAL.Entities;
+using HelloSocNetw_DAL.Infrastructure;
+using HelloSocNetw_DAL.Interfaces;
+using HelloSocNetw_PL.Infrastructure;
+using HelloSocNetw_PL.Infrastructure.MapperProfiles;
+using HelloSocNetw_PL.Validators;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace HelloSocNetw_PL
 {
@@ -24,16 +34,13 @@ namespace HelloSocNetw_PL
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc(opt =>
-                {
-                    //opt.Filters.Add(typeof(ValidatorActionFilters));
+            services.AddCors();
 
-                }).AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>())
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.ConfigureDALServices();
+            services.ConfigureBLLServices();
+            services.ConfigurePLServices();
 
-            services.AddIdentity<AppIdentityUser, AppUserRole>()
-                .AddEntityFrameworkStores<SocNetwContext>()
-                .AddDefaultTokenProviders();
+            services.AddAutoMapper(typeof(RegisterModelProfile), typeof(UserInfoModelProfile), typeof(UserInfoDTOProfile));
 
             var connectingString = Configuration.GetConnectionString("HelloDatabase");
             services.AddDbContextPool<SocNetwContext>(options =>
@@ -41,7 +48,33 @@ namespace HelloSocNetw_PL
                     .UseSqlServer(connectingString)
                     .EnableSensitiveDataLogging());
 
-            services.AddAutoMapper();
+            services.AddAuthentication(options => {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = AuthJwtTokenOptions.Issuer,
+
+                    ValidateAudience = true,
+                    ValidAudience = AuthJwtTokenOptions.Audience,
+                    ValidateLifetime = true,
+
+                    IssuerSigningKey = AuthJwtTokenOptions.GetSecurityKey(),
+                    ValidateIssuerSigningKey = true
+                };
+            });
+            services.AddAutoMapper(typeof(UserInfoModelProfile));
+            services.AddMvc(opt =>
+                {
+                    opt.Filters.Add(typeof(ValidatorActionFilter));
+
+                }).AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>())
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,8 +90,24 @@ namespace HelloSocNetw_PL
                 app.UseHsts();
             }
 
-            app.UseAuthentication();
+            var serviceProvider = app.ApplicationServices;
+            using (var serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>()
+                        .CreateScope())
+            {
+                var unitOfWork = serviceScope.ServiceProvider.GetService<IUnitOfWork>();
+                AppDbInitializer.Seed(unitOfWork);
+            }
+
+            app.UseCors(x => x
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader());
+
             app.UseHttpsRedirection();
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+
+            app.UseAuthentication();
             app.UseMvc();
         }
     }

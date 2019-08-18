@@ -1,7 +1,10 @@
-﻿namespace HelloSocNetw_PL.Models
+﻿using System;
+
+namespace BLL.ModelsDTO
 {
-    public class UserInfoModel
+    public class UserInfoDTO
     {
+
         public int UserInfoId { get; set; }
 
         public string FirstName { get; set; }
@@ -12,8 +15,7 @@
         public int CountryId { get; set; }
         public string CountryName { get; set; }
 
-        public int DayOfBirth { get; set; }
-        public int MonthOfBirth { get; set; }
-        public int YearOfBirth { get; set; }
+        public DateTime DateOfBirth { get; set; }
     }
 }
+
