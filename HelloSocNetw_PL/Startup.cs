@@ -40,7 +40,18 @@ namespace HelloSocNetw_PL
             services.ConfigureBLLServices();
             services.ConfigurePLServices();
 
-            services.AddAutoMapper(typeof(RegisterModelProfile), typeof(UserInfoModelProfile), typeof(UserInfoDTOProfile));
+            services.AddAutoMapper(typeof(RegisterModelProfile),
+                typeof(UserInfoModelProfile),
+                typeof(UserInfoDTOProfile),
+                typeof(CountryDTOProfile),
+                typeof(CountryModelProfile));
+
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+            });
+
+            services.AddAutoMapper(typeof(UserInfoModelProfile), typeof(CountryModelProfile));
 
             var connectingString = Configuration.GetConnectionString("HelloDatabase");
             services.AddDbContextPool<SocNetwContext>(options =>
@@ -68,12 +79,7 @@ namespace HelloSocNetw_PL
                     ValidateIssuerSigningKey = true
                 };
             });
-            services.AddAutoMapper(typeof(UserInfoModelProfile));
-            services.AddMvc(opt =>
-                {
-                    opt.Filters.Add(typeof(ValidatorActionFilter));
-
-                }).AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>())
+            services.AddMvc().AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>())
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 

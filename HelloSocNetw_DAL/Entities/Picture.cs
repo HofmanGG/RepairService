@@ -4,9 +4,6 @@
     {
         public int PictureId { get; set; }
 
-        public int UserInfoId { get; set; }
-        public virtual UserInfo UserInfo { get; set; }
-
         public string Name { get; set; }
         public byte[] Image { get; set; }
     }

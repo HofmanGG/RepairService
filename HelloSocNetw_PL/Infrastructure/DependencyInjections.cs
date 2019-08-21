@@ -19,6 +19,7 @@ namespace HelloSocNetw_PL.Infrastructure
             // Service dependency injection configuration
             services.AddScoped<IIdentityUserService, IdentityUserService>();
             services.AddScoped<IUserInfoService, UserInfoService>();
+            services.AddScoped<ICountryService, CountryService>();
         }
     }
 }

@@ -2,16 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Mime;
-using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Net.Http;
 using AutoMapper;
-using HelloSocNetw_BLL.EntitiesDTO;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_PL.Infrastructure;
 using HelloSocNetw_PL.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using static HelloSocNetw_PL.Infrastructure.ControllerExtensions;
 
@@ -23,7 +20,6 @@ namespace PL.Controllers
     {
         private readonly IUserInfoService _userInfoService;
         private readonly IMapper _mapper;
-        private readonly string _picturesDirectory;
 
         public UsersController(IUserInfoService userInfoService, IMapper mapper)
         {
@@ -41,9 +37,9 @@ namespace PL.Controllers
             return Ok(userInfoModel);
         }
 
-        // GET: api/Users/
-        [HttpGet]
-        public async Task<IActionResult> GetUsersAsync(int from)
+        // POST: api/Users/
+        [HttpPost]
+        public async Task<IActionResult> GetUsersAsync([FromBody]int from)
         {
             var usersInfoDto = await _userInfoService.GetUsersInfoAsync(from, 10);
             var userModels = _mapper.Map<IEnumerable<UserInfoModel>>(usersInfoDto);
@@ -51,11 +47,11 @@ namespace PL.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> AddFriendByFriendId(int friendId)
+        public async Task<IActionResult> AddFriendByFriendId(int subId)
         {
             var userId = this.GetUserId();
 
-            await _userInfoService.AddFriendByUsersIdAsync(userId, friendId);
+            await _userInfoService.AddFriendByUserIdAndSubIdAsync(userId, subId);
             return Ok();
         }
 
@@ -86,47 +82,60 @@ namespace PL.Controllers
             return Ok();
         }
 
-        [HttpPost]
+        /*[HttpPost]
         [Authorize]
-        [Route("pictures")]
-        public async Task<IActionResult> AddPictureAsync([FromForm]PictureModel pictureModel)
+        [Route("avatar")]
+        public async Task<IActionResult> AddAvatarAsync()
         {
-            if (pictureModel != null)
-            {
-                string ext = Path.GetExtension(pictureModel.Path);
-                if (ext == ".jpg" || ext == ".png" || ext == ".bmp")
-                {
-                    pictureModel.Path = Path.Combine(_picturesDirectory, Path.GetFileName(pictureModel.Path));
+            string imageName = null;
+            var httpRequest = System.Web.HttpContext.Current.Request;
 
-                    var userId = this.GetUserId();
+            var postedFile = httpRequest.Files["Image"];
 
-                    var pictureDto = _mapper.Map<PictureDTO>(pictureModel);
-                    await _userInfoService.AddPictureByUserIdAsync(userId, pictureDto);
+            imageName = new String(Path.GetFileNameWithoutExtension(postedFile.FileName).Take(10).ToArray()).Replace(" ", "-");
+            imageName = imageName + DateTime.Now.ToString("yymmssfff") + Path.GetExtension(postedFile.FileName);
+            var filePath = HttpContext.Current.Server.MapPath("~/Image/" + imageName);
+            postedFile.SaveAs(filePath);
+        }*/
 
-                    return Ok();
-                }
 
-                return BadRequest();
-            }
-
-            return BadRequest();
+        [HttpGet]
+        [Route("{userId}/friends/count")]
+        public async Task<IActionResult> GetCountOfFriendsByUserId(int userId)
+        {
+            return Ok(await _userInfoService.GetCountOfFriendsByUserIdAsync(userId));
         }
 
         [HttpGet]
-        [Route("{userId}/pictures/{pictureId}")]
-        public async Task<IActionResult> GetPictureByUserIdAndPictureIdAsync(int userId, int pictureId)
+        [Route("{userId}/subscribers/count")]
+        public async Task<IActionResult> GetCountOfSubscribersByUserId(int userId)
         {
-            var pictureDto = await _userInfoService.GetPictureByUserIdAndPictureIdAsync(userId, pictureId);
-            var pictureModel = _mapper.Map<PictureModel>(pictureDto);
-            return Ok(pictureModel);
+            return Ok(await _userInfoService.GetCountOfSubscribersByUserIdAsync(userId));
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
-        [Route("{userId}/pictures/count")]
-        public async Task<IActionResult> GetCountOfPicturesByUserIdAsync(int userId)
+        [Route("count")]
+        public async Task<IActionResult> GetCountOfUsersAsync()
         {
-            return Ok(await _userInfoService.GetCountOfPicturesByUserIdAsync(userId));
+            return Ok(await _userInfoService.GetCountOfUsersInfoAsync());
         }
-    }
+
+        [HttpPost]
+        [Route("{userId}/friends")]
+        public async Task<IActionResult> GetFriendsAsync(int userId, int toTake)
+        {
+            var friendsDto = await _userInfoService.GetFriendsByUserIdAsync(userId, toTake);
+            var friendModels = _mapper.Map<IEnumerable<UserInfoModel>>(friendsDto);
+            return Ok(friendModels);
+        }
+
+        [HttpPost]
+        [Route("{userId}/subscribers")]
+        public async Task<IActionResult> GetSubsAsync(int userId, int toTake)
+        {
+            var subsDto = await _userInfoService.GetSubsByUserIdAsync(userId, toTake);
+            var subModels = _mapper.Map<IEnumerable<UserInfoModel>>(subsDto);
+            return Ok(subModels);
+        }
+    }   
 }

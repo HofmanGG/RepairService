@@ -10,6 +10,8 @@ namespace HelloSocNetw_DAL.Interfaces
 
         Task<int> GetCountOfCountriesAsync();
 
+        Task<IEnumerable<Country>> GetCountriesAsync();
+
         void AddCountry(Country country);
 
         void AddCountries(IEnumerable<Country> countries);

@@ -17,6 +17,11 @@ namespace HelloSocNetw_DAL.EFRepositories
             return await _context.Countries.FindAsync(id);
         }
 
+        public async Task<IEnumerable<Country>> GetCountriesAsync()
+        {
+            return await _context.Countries.ToListAsync();
+        }
+
         public async Task<int> GetCountOfCountriesAsync() => await _context.Countries.CountAsync();
 
         public void AddCountry(Country country) => _context.Countries.Add(country);

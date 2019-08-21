@@ -11,7 +11,7 @@ namespace HelloSocNetw_DAL
     {
         public static void Seed(IUnitOfWork unitOfWork)
         {
-            if (!unitOfWork.UserManager.Users.Any())
+            if (unitOfWork.Countries.GetCountOfCountriesAsync().Result != 0)
             {
                 var countries = new HashSet<Country>()
                 {
@@ -28,31 +28,6 @@ namespace HelloSocNetw_DAL
 
                 unitOfWork.Countries.AddCountries(countries);
                 unitOfWork.SaveChangesAsync();
-
-                var user1 = new AppIdentityUser() {Email = "addDbInitiali45645645zer@mail.ru", UserName = "Hofman"};
-
-                unitOfWork.UserManager.CreateAsync(user1, "qwSD12490()");
-
-                var role = new AppUserRole() { Name = "Admin" };
-                unitOfWork.RoleManager.CreateAsync(role);
-
-                unitOfWork.UserManager.AddToRoleAsync(user1, role.Name);
-
-                var userInfo = new UserInfo()
-                {
-                    FirstName = "Illia",
-                    LastName = "Samko",
-                    Country = countries.First(),
-                    AppIdentityUser = user1,
-                    DateOfBirth =  new DateTime(2000, 5, 11),
-                    Gender = "Male"
-                };
-
-                unitOfWork.UsersInfo.AddUserInfo(userInfo);
-                unitOfWork.SaveChangesAsync();
-
-                user1.UserInfo = userInfo;
-                unitOfWork.UserManager.UpdateAsync(user1);
             }
         }
     }

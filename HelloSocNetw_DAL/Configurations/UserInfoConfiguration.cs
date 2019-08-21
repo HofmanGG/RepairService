@@ -22,10 +22,6 @@ namespace HelloSocNetw_DAL.Configurations
 
             builder.Property(u => u.Gender)
                 .IsRequired();
-
-            builder.HasOne(u => u.ProfilePicture)
-                .WithOne(p => p.UserInfo)
-                .HasForeignKey<UserInfo>(u => u.ProfilePictureId);
         }
     }
 }

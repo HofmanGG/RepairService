@@ -23,9 +23,9 @@ namespace HelloSocNetw_PL.Validators
                 .NotEmpty();
 
             RuleFor(u => u.Gender)
-                .Matches("Male|Female");
+                .Matches(@"^([M|m]ale|[F|f]emale)$");
 
-            RuleFor(u => u.DayOfBirth)
+            RuleFor(u => u.YearOfBirth)
                 .GreaterThan(1900)
                 .LessThan(DateTime.Now.Year - 5);
 

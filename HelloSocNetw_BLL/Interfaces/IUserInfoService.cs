@@ -29,17 +29,13 @@ namespace HelloSocNetw_BLL.Interfaces
 
         Task AddSubscriberByUserIdAbdSubIdAsync(int userId, int subId);
 
-        Task AddFriendByUsersIdAsync(int userId, int subId);
-
-        Task AddPictureByUserIdAsync(int userId, PictureDTO pictureDto);
-
-        Task<PictureDTO> GetPictureByUserIdAndPictureIdAsync(int userId, int pictureId);
-
-        Task<int> GetCountOfPicturesByUserIdAsync(int userId);
-
-        Task DeletePictureByUserIdAndPictureIdAsync(int userId, int pictureId);
+        Task AddFriendByUserIdAndSubIdAsync(int userId, int subId);
 
         Task DeleteUserInfoByUserIdAsync(int userId);
+
+        Task<IEnumerable<UserInfoDTO>> GetFriendsByUserIdAsync(int userId, int toTake);
+
+        Task<IEnumerable<UserInfoDTO>> GetSubsByUserIdAsync(int userId, int toTake);
 
         Task UpdateUserInfoAsync(UserInfoDTO userInfoDto);
 

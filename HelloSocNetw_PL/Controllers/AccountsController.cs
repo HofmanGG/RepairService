@@ -12,10 +12,10 @@ using HelloSocNetw_PL.Validators;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using static HelloSocNetw_PL.Infrastructure.ControllerExtensions;
 
 namespace PL.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]")]
     [ApiController] 
     [AllowAnonymous]
@@ -33,7 +33,7 @@ namespace PL.Controllers
         // POST: api/accounts/signup
         [Route("signup")]
         [HttpPost]
-        public async Task<IActionResult> SignUp([FromBody]RegisterModel registerModel)
+        public async Task<IActionResult> SignUp(RegisterModel registerModel)
         {
             var regValidator = new RegisterModelValidator();
             if (regValidator.Validate(registerModel).IsValid)
@@ -42,6 +42,7 @@ namespace PL.Controllers
                 {
                     var userInfoDto = _mapper.Map<UserInfoDTO>(registerModel);
                     await _userService.CreateAccountAsync(userInfoDto, registerModel.Email, registerModel.Password);
+                    return Ok();
                 }
                 return Conflict();
             }
@@ -51,18 +52,48 @@ namespace PL.Controllers
         // POST: api/accounts/signin
         [Route("signin")]
         [HttpPost]
-        public async Task<IActionResult> SignIn([FromBody]LoginModel loginModel)
+        [Produces("application/json")]
+        public async Task<IActionResult> SignIn(LoginModel loginModel)
         {
             var loginValidator = new LoginModelValidator();
             if (loginValidator.Validate(loginModel).IsValid)
             {
-                if (await _userService.RightDataAsync(loginModel.Email, loginModel.Password))
+                var userInfoDto = await _userService.Authenticate(loginModel.Email, loginModel.Password);
+                if(userInfoDto != null)
                 {
-                    return Ok(await _userService.GetJwtTokenAsync(loginModel.Email));
+                    var userInfoModel = _mapper.Map<UserInfoModel>(userInfoDto);
+                    var token = await _userService.GetJwtTokenAsync(loginModel.Email);
+
+                    userInfoModel.Token = token;
+
+                    return Ok(userInfoModel);
                 }
                 return UnprocessableEntity();
             }
             return UnprocessableEntity();
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("changeinfo")]
+        [Produces("application/json")]
+        public async Task<IActionResult> ChangeUserInfoAsync(UserInfoModel userInfoModel)
+        {
+            var userId = this.GetUserId();
+
+            var userInfoDto = _mapper.Map<UserInfoDTO>(userInfoModel);
+            userInfoDto.UserInfoId = userId;
+
+            await _userService.UpdateUserInfoAsync(userInfoDto);
+            var changedUserInfoDto = await _userService.GetUserInfoByIdAsync(userId);
+
+            var changedUserInfoModel = _mapper.Map<UserInfoModel>(changedUserInfoDto);
+
+            var email = await _userService.GetUserEmailByIdAsync(userId);
+            var token = await _userService.GetJwtTokenAsync(email);
+            changedUserInfoModel.Token = token;
+
+            return Ok(changedUserInfoModel);
         }
     }
 }

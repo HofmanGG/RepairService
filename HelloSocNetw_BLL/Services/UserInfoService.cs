@@ -121,29 +121,18 @@ namespace BLL.Services
             }
         }
 
-        public async Task AddPictureByUserIdAsync(int userId, PictureDTO pictureDto)
+        public async Task<IEnumerable<UserInfoDTO>> GetFriendsByUserIdAsync(int userId, int toTake)
         {
-            var picture = _mapper.Map<Picture>(pictureDto);
-            await _unitOfWork.Pictures.AddPictureByUserIdAsync(userId, picture);
-            await _unitOfWork.SaveChangesAsync();
+            var friends = await _unitOfWork.UsersInfo.GetFriendsByUserIdAsync(userId, toTake);
+            var friendsDto = _mapper.Map<IEnumerable<UserInfoDTO>>(friends);
+            return friendsDto;
         }
 
-        public async Task<PictureDTO> GetPictureByUserIdAndPictureIdAsync(int userId, int pictureId)
+        public async Task<IEnumerable<UserInfoDTO>> GetSubsByUserIdAsync(int userId, int toTake)
         {
-            var picture = await _unitOfWork.Pictures.GetPictureByUserIdAndPictureId(userId, pictureId);
-            var pictureDto = _mapper.Map<PictureDTO>(picture);
-            return pictureDto;
-        }
-
-        public async Task<int> GetCountOfPicturesByUserIdAsync(int userId)
-        {
-            return await _unitOfWork.Pictures.GetCountOfPicturesByUserIdAsync(userId);
-        }
-
-        public async Task DeletePictureByUserIdAndPictureIdAsync(int userId, int pictureId)
-        {
-            await _unitOfWork.Pictures.DeletePictureByUserIdAndPictureIdAsync(userId, pictureId);
-            await _unitOfWork.SaveChangesAsync();
+            var subs = await _unitOfWork.UsersInfo.GetSubscribersByUserIdAsync(userId, toTake);
+            var subsDto = _mapper.Map<IEnumerable<UserInfoDTO>>(subs);
+            return subsDto;
         }
 
         public async Task UpdateUserInfoAsync(UserInfoDTO userInfoDto)

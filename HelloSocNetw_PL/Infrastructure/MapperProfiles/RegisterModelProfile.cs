@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BLL.ModelsDTO;
 using HelloSocNetw_PL.Models;
+using System;
 
 namespace HelloSocNetw_PL.Infrastructure.MapperProfiles
 {
@@ -9,9 +10,7 @@ namespace HelloSocNetw_PL.Infrastructure.MapperProfiles
         public RegisterModelProfile()
         {
             CreateMap<RegisterModel, UserInfoDTO>()
-                .ForPath(dest => dest.DateOfBirth.Year, opt => opt.MapFrom(src => src.YearOfBirth))
-                .ForPath(dest => dest.DateOfBirth.Month, opt => opt.MapFrom(src => src.MonthOfBirth))
-                .ForPath(dest => dest.DateOfBirth.Day, opt => opt.MapFrom(src => src.DayOfBirth));
+                .ForPath(dest => dest.DateOfBirth, opt => opt.MapFrom(src => new DateTime(src.YearOfBirth, src.MonthOfBirth, src.DayOfBirth)));
         }
     }
 }

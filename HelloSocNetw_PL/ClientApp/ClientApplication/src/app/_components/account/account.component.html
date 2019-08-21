@@ -1,0 +1,60 @@
+<h2>Register</h2>
+<form [formGroup]="changeInfoForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+        <label for="firstName">First Name</label>
+        <input type="text" formControlName="firstName" class="form-control"  [ngClass]="{ 'is-invalid': submitted && f.firstName.errors }" />
+        <div *ngIf="submitted && f.firstName.errors" class="invalid-feedback">
+            <div *ngIf="f.firstName.errors.required">First Name is required</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <input type="text" formControlName="lastName" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.lastName.errors }" />
+        <div *ngIf="submitted && f.lastName.errors" class="invalid-feedback">
+            <div *ngIf="f.lastName.errors.required">Last Name is required</div>
+        </div>
+    </div>
+     <div class="form-group">
+        <label for="gender">Gender</label>
+        <input type="text" formControlName="gender" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.gender.errors }" />
+        <div *ngIf="submitted && f.gender.errors" class="invalid-feedback">
+            <div *ngIf="f.gender.errors.required"> Gender is required</div>
+        </div>
+    </div>
+    <div class="form-group">
+            <label for="dayOfBirth">Day Of Birth</label>
+            <input type="text" formControlName="dayOfBirth" class="form-control"  [ngClass]="{ 'is-invalid': submitted && f.dayOfBirth.errors }" />
+            <div *ngIf="submitted && f.dayOfBirth.errors" class="invalid-feedback">
+                <div *ngIf="f.dayOfBirth.errors.required">Day Of Birth is required</div>
+            </div>
+        </div>
+    <div class="form-group">
+        <label for="monthOfBirth">Month Of Birth</label>
+        <input type="text" formControlName="monthOfBirth" class="form-control"  [ngClass]="{ 'is-invalid': submitted && f.monthOfBirth.errors }" />
+        <div *ngIf="submitted && f.monthOfBirth.errors" class="invalid-feedback">
+            <div *ngIf="f.monthOfBirth.errors.required">Month Of Birth is required</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="yearOfBirth">Year Of Birth</label>
+        <input type="text" formControlName="yearOfBirth" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.yearOfBirth.errors }" />
+        <div *ngIf="submitted && f.yearOfBirth.errors" class="invalid-feedback">
+            <div *ngIf="f.yearOfBirth.errors.required">Year Of Birth is required</div>
+        </div>
+    </div>
+    <div class="form-group">
+      <select class="form-control" formControlName="countryId" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.countryId.errors }">
+        <option value= disabled>Choose your country</option>
+        <option *ngFor="let country of countries" [ngValue]="country.countryId">
+            {{country.countryName}}
+        </option>
+      </select>
+    </div>
+    <div class="form-group">
+        <button [disabled]="loading" class="btn btn-primary">
+            <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+            Change 
+        </button>
+        <a routerLink="/login" class="btn btn-link">Cancel</a>
+    </div>
+</form>

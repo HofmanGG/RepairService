@@ -10,7 +10,6 @@ namespace HelloSocNetw_DAL.Entities
     {
         public UserInfo()
         {
-            Pictures = new HashSet<Picture>();
             Dialogs = new HashSet<Dialog>();
             Friends = new HashSet<FriendshipTable>();
             Subscribers = new HashSet<SubscribersTable>();
@@ -30,8 +29,6 @@ namespace HelloSocNetw_DAL.Entities
 
         public int? ProfilePictureId { get; set; }
         public virtual Picture ProfilePicture { get; set; } 
-
-        public virtual ICollection<Picture> Pictures { get; private set; }
 
         public virtual ICollection<Dialog> Dialogs { get; private set; }
 

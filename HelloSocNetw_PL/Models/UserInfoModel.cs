@@ -15,5 +15,7 @@
         public int DayOfBirth { get; set; }
         public int MonthOfBirth { get; set; }
         public int YearOfBirth { get; set; }
+
+        public string Token { get; set; }
     }
 }

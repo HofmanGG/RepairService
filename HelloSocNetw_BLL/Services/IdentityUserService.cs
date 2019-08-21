@@ -46,10 +46,40 @@ namespace HelloSocNetw_BLL.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<bool> RightDataAsync(string email, string password)
+        public async Task<UserInfoDTO> Authenticate(string email, string password)
         {
             var user = await _unitOfWork.UserManager.FindByEmailAsync(email);
-            return user != null && await _unitOfWork.UserManager.CheckPasswordAsync(user, password);
+            if (user!= null)
+            {
+                var userInfo = await _unitOfWork.UsersInfo.GetUserInfoByIdAsync(user.Id);
+                var userInfoDto = _mapper.Map<UserInfoDTO>(userInfo);
+                return userInfoDto;
+            }
+            return null;
+        }
+
+        public async Task UpdateUserInfoAsync(UserInfoDTO userInfoDto)
+        {
+            var userInfo = _mapper.Map<UserInfo>(userInfoDto);
+            _unitOfWork.UsersInfo.UpdateUserInfo(userInfo);
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task<UserInfoDTO> GetUserInfoByIdAsync(int id)
+        {
+            var userInfo = await _unitOfWork.UsersInfo.GetUserInfoByIdAsync(id);
+            var userInfoDto = _mapper.Map<UserInfoDTO>(userInfo);
+
+            return userInfoDto;
+        }
+
+        public async Task<string> GetUserEmailByIdAsync(int id)
+        {
+            var account = await _unitOfWork.UserManager.FindByIdAsync(id.ToString());
+            var email = account.Email;
+
+            return email;
         }
 
         public async Task<string> GetJwtTokenAsync(string email)
