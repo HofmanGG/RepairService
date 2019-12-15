@@ -1,0 +1,7 @@
+.brd {
+    margin-bottom: 15px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    border: solid #084370 2px;
+    border-radius: 20px;
+}

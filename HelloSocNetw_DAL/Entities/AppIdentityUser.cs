@@ -1,15 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
+using HelloSocNetw_DAL.Identity;
 using Microsoft.AspNetCore.Identity;
 
 namespace HelloSocNetw_DAL.Entities
 {
-    public class AppIdentityUser : IdentityUser<int>
+    public class AppIdentityUser : IdentityUser<Guid>
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public override int Id { get; set; }
-
+        public int UserInfoId { get; set; }
         public virtual UserInfo UserInfo { get; set; }
+
+        public virtual ICollection<AppUserRole> UserRoles { get; set; }
     }
 }

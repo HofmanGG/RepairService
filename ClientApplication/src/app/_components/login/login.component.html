@@ -1,0 +1,31 @@
+<div class="col-md-6 offset-md-3 padding">
+<h2>Login</h2>
+<form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="text" formControlName="email" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.email.errors }" />
+        <div *ngIf="submitted && f.email.errors" class="invalid-feedback">
+            <div *ngIf="f.email.errors.required">Email is required</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" formControlName="password" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.password.errors }" />
+        <div *ngIf="submitted && f.password.errors" class="invalid-feedback">
+            <div *ngIf="f.password.errors.required">Password is required</div>
+        </div>
+    </div>
+    <div *ngIf="error" class="alert alert-danger" role="alert">Wrong Email or Password</div>
+    <div class="form-group">
+        <button [disabled]="loading" class="btn btn-primary">
+            <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+            Login
+        </button>
+        <a routerLink="/register" class="btn btn-link text-light">Register</a>
+    </div>
+    <div *ngIf="sc.unauthorized" class="alert alert-danger" role="alert">Wrong Credentials</div>
+    <div *ngIf="sc.forbidden" class="alert alert-danger" role="alert">Email Is Not Confirmed</div>
+    <div *ngIf="sc.notFound" class="alert alert-danger" role="alert">Account is banned</div>
+    <div *ngIf="sc.unknownError" class="alert alert-danger" role="alert">Unknown Error</div>
+</form>
+</div>

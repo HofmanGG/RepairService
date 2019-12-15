@@ -10,42 +10,35 @@ namespace HelloSocNetw_DAL.Interfaces
 {
     public interface IUserInfoRepository
     {
-        Task<UserInfo> SingleOrDefaultUserInfoAsync(Expression<Func<UserInfo, bool>> predicate);
+        Task<UserInfo> GetUserInfoByUserInfoIdAsync(int userInfoId);
 
-        Task<UserInfo> GetUserInfoByIdAsync(int id);
+        Task<UserInfo> GetUserInfoByAppIdentityIdAsync(Guid appIdentityUserId);
 
         Task<IEnumerable<UserInfo>> GetUsersInfoAsync(int toSkip, int toTake);
 
+        Task<UserInfo> GetUserInfoAsync(Expression<Func<UserInfo, bool>> filter, string includeProperties = "");
+
+        Task<IEnumerable<UserInfo>> GetUsersInfoAsync(
+            Expression<Func<UserInfo, bool>> filter = null,
+            Func<IQueryable<UserInfo>, IOrderedQueryable<UserInfo>> orderBy = null,
+            string includeProperties = "");
+
+        Task<TType> GetAsync<TType>(Expression<Func<UserInfo, bool>> filter, Expression<Func<UserInfo, TType>> select) where TType : class;
+
         Task<int> GetCountOfUsersInfoAsync();
 
-        Task<int> GetCountOfFriendsByUserIdAsync(int id);
+        Task<int> GetUserInfoIdByEmailAsync(string email);
 
-        Task<int> GetCountOfSubscribersByUserIdAsync(int id);
+        void AddUserInfo(UserInfo userInfoToAdd);
 
-        Task<bool> UserContainsSubscriberAsync(int userId, int subId);
+        void AddUsersInfo(IEnumerable<UserInfo> usersInfoToAdd);
 
-        Task<bool> UserContainsFriendAsync(int userId, int friendId);
+        void UpdateUserInfo(UserInfo userInfoToUpdate);
 
-        IQueryable<UserInfo> FindUsersInfo(Expression<Func<UserInfo, bool>> predicate);
+        Task DeleteUserInfoByUserInfoId(int userInfoId);
 
-        void AddUserInfo(UserInfo userInfo);
+        void DeleteUserInfo(UserInfo userInfoToDelete);
 
-        void AddUsersInfo(IEnumerable<UserInfo> usersInfo);
-
-        Task AddSubscriberByUserIdAndSubIdAsync(int userId, int subId);
-
-        Task<IEnumerable<UserInfo>> GetSubscribersByUserIdAsync(int id, int toTake);
-
-        Task AddFriendByUsersIdAndSubIdAsync(int firstUserId, int secondUserId);
-
-        Task<IEnumerable<UserInfo>> GetFriendsByUserIdAsync(int id, int toTake);
-
-        Task DeleteSubscriptionAsync(int userId, int subId);
-
-        Task DeleteFriendshipAsync(int userId, int friendId);
-
-        Task DeleteUserInfoByUserId(int userId);
-
-        void UpdateUserInfo(UserInfo userInfo);
+        Task<bool> UserInfoExistsAsync(int userInfoId);
     }
 }

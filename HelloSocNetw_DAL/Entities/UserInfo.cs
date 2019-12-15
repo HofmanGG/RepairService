@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using static HelloSocNetw_DAL.Infrastructure.DALEnums;
 
 namespace HelloSocNetw_DAL.Entities
 {
@@ -10,9 +11,7 @@ namespace HelloSocNetw_DAL.Entities
     {
         public UserInfo()
         {
-            Dialogs = new HashSet<Dialog>();
-            Friends = new HashSet<FriendshipTable>();
-            Subscribers = new HashSet<SubscribersTable>();
+            RepairRequests = new HashSet<RepairRequest>();
         }
 
         public int UserInfoId { get; set; }
@@ -22,20 +21,14 @@ namespace HelloSocNetw_DAL.Entities
 
         public DateTime DateOfBirth { get; set; }
 
-        public string Gender { get; set; }
+        public DALGenderType Gender { get; set; }
 
         public int CountryId { get; set; }
         public virtual Country Country { get; set; }
 
-        public int? ProfilePictureId { get; set; }
-        public virtual Picture ProfilePicture { get; set; } 
+        public virtual ICollection<RepairRequest> RepairRequests { get; set; }
 
-        public virtual ICollection<Dialog> Dialogs { get; private set; }
-
-        public virtual ICollection<FriendshipTable> Friends { get; private set; }
-        public virtual ICollection<SubscribersTable> Subscribers { get; private set; }
-
-        public int AppIdentityUserId { get; set; }
+        public Guid AppIdentityUserId { get; set; }
         public virtual AppIdentityUser AppIdentityUser { get; set; }
     }
 }

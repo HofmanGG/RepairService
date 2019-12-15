@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HelloSocNetw_DAL.Entities;
 
@@ -6,22 +8,26 @@ namespace HelloSocNetw_DAL.Interfaces
 {
     public interface ICountryRepository
     {
-        Task<Country> GetCountryByIdAsync(int id);
-
-        Task<int> GetCountOfCountriesAsync();
+        Task<Country> GetCountryByIdAsync(int countryId);
 
         Task<IEnumerable<Country>> GetCountriesAsync();
 
-        void AddCountry(Country country);
+        Task<int> GetCountOfCountriesAsync();
 
-        void AddCountries(IEnumerable<Country> countries);
+        void AddCountry(Country countryToAdd);
 
-        void DeleteCountry(Country country);
+        void AddCountries(IEnumerable<Country> countriesToAdd);
 
-        Task DeleteCountryByIdAsync(int id);
+        void DeleteCountry(Country countryToDelete);
 
-        void DeleteCountries(IEnumerable<Country> countries);
+        Task DeleteCountryByIdAsync(int countryId);
 
-        void UpdateUserInfo(Country country);
+        void DeleteCountries(IEnumerable<Country> countriesToDelete);
+
+        void UpdateCountryAsync(Country countryToUpdate);
+
+        Task<bool> CountryExistsAsyncByCountryId(int countryId);
+
+        Task<bool> CountryExistsAsync(Expression<Func<Country, bool>> where);
     }
 }

@@ -1,151 +1,94 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using BLL.ModelsDTO;
-using HelloSocNetw_BLL.EntitiesDTO;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_DAL.Entities;
 using HelloSocNetw_DAL.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using static HelloSocNetw_DAL.Infrastructure.DALEnums;
 
 namespace BLL.Services
 {
     public class UserInfoService: IUserInfoService
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly IUnitOfWork _uow;
+        private readonly IMapper _mpr;
 
         public UserInfoService(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
+            _uow = unitOfWork;
+            _mpr = mapper;
         }
 
-        public async Task<UserInfo> SingleOrDefaultUserInfoAsync(Expression<Func<UserInfo, bool>> predicate)
+        public async Task<UserInfoDTO> GetUserInfoByUserInfoIdAsync(int id)
         {
-            return await _unitOfWork.UsersInfo.SingleOrDefaultUserInfoAsync(predicate);
+            var userInfo = await _uow.UsersInfo.GetUserInfoByUserInfoIdAsync(id);
+            if(userInfo == null)
+                return null;
+
+            var userInfoDto = _mpr.Map<UserInfoDTO>(userInfo);
+            return userInfoDto;
         }
 
-        public async Task<UserInfoDTO> GetUserInfoByIdAsync(int id)
+        public async Task<UserInfoDTO> GetUserInfoByAppIdentityIdAsync(Guid appIdentityUserId)
         {
-            var userInfo = await _unitOfWork.UsersInfo.GetUserInfoByIdAsync(id);
-            var userInfoDto = _mapper.Map<UserInfoDTO>(userInfo);
+            var userInfo = await _uow.UsersInfo.GetUserInfoByAppIdentityIdAsync(appIdentityUserId);
+            var userInfoDto = _mpr.Map<UserInfoDTO>(userInfo);
+
             return userInfoDto;
         }
 
         public async Task<IEnumerable<UserInfoDTO>> GetUsersInfoAsync(int toSkip, int toTake)
         {
-            var usersInfo = await _unitOfWork.UsersInfo.GetUsersInfoAsync(toSkip, toTake);
-            var usersInfoDto = _mapper.Map<IEnumerable<UserInfoDTO>>(usersInfo);
+            var usersInfo = await _uow.UsersInfo.GetUsersInfoAsync(toSkip, toTake);
+            var usersInfoDto = _mpr.Map<IEnumerable<UserInfoDTO>>(usersInfo);
             return usersInfoDto;
         }
 
-        public async Task<int> GetCountOfUsersInfoAsync() => await _unitOfWork.UsersInfo.GetCountOfUsersInfoAsync();
+        public async Task<int> GetCountOfUsersInfoAsync()
+        {
+            return await _uow.UsersInfo.GetCountOfUsersInfoAsync();
+        }
 
-        public IQueryable<UserInfo> FindUsersInfo(Expression<Func<UserInfo, bool>> predicate) =>
-            _unitOfWork.UsersInfo.FindUsersInfo(predicate);
+        public async Task<int> GetUserInfoIdByEmailAsync(string email)
+        {
+            var userInfoWithIdAnon = await _uow.UsersInfo.GetAsync(u => u.AppIdentityUser.Email == email, x => new { x.UserInfoId });
+            return userInfoWithIdAnon.UserInfoId;
+        }
 
         public async Task AddUserInfoAsync(UserInfoDTO userInfoDto)
         {
-            var userInfo = _mapper.Map<UserInfo>(userInfoDto);
-            _unitOfWork.UsersInfo.AddUserInfo(userInfo);
-            await _unitOfWork.SaveChangesAsync();
+            var userInfo = _mpr.Map<UserInfo>(userInfoDto);
+            _uow.UsersInfo.AddUserInfo(userInfo);
+            await _uow.SaveChangesAsync();
         }
 
-        public async Task<int> GetCountOfFriendsByUserIdAsync(int id)
+        public async Task<bool> UpdateUserInfoAsync(UserInfoDTO newUserInfoDto)
         {
-            return await _unitOfWork.UsersInfo.GetCountOfFriendsByUserIdAsync(id);
+            var userInfoToChange = await _uow.UsersInfo.GetUserInfoByUserInfoIdAsync(newUserInfoDto.UserInfoId);
+
+            userInfoToChange.CountryId = newUserInfoDto.CountryId;
+            userInfoToChange.Gender = (DALGenderType)(int)newUserInfoDto.Gender;
+            userInfoToChange.DateOfBirth = newUserInfoDto.DateOfBirth;
+            userInfoToChange.FirstName = newUserInfoDto.FirstName;
+            userInfoToChange.LastName = newUserInfoDto.LastName;
+
+            _uow.UsersInfo.UpdateUserInfo(userInfoToChange);
+            var rowsAffected = await _uow.SaveChangesAsync();
+            return rowsAffected == 1;
         }
 
-        public async Task<int> GetCountOfSubscribersByUserIdAsync(int id)
+        public async Task<bool> DeleteUserInfoByUserIdAsync(int userInfoId)
         {
-            return await _unitOfWork.UsersInfo.GetCountOfSubscribersByUserIdAsync(id);
+            await _uow.UsersInfo.DeleteUserInfoByUserInfoId(userInfoId);
+            var rowsAffected =  await _uow.SaveChangesAsync();
+            return rowsAffected == 2;
         }
 
-        public async Task AddSubscriberByUserIdAbdSubIdAsync(int userId, int subId)
+        public async Task<bool> UserInfoExistsAsync(int userInfoId)
         {
-            if (await _unitOfWork.UsersInfo.UserContainsSubscriberAsync(userId, subId)) //sub is already subscribed
-                return;
-
-            if (await _unitOfWork.UsersInfo.UserContainsSubscriberAsync(subId, userId)) //user is subscribed on sub
-                return;
-
-            if (await _unitOfWork.UsersInfo.UserContainsFriendAsync(userId, subId)) //they are friends
-                return;
-
-            await _unitOfWork.UsersInfo.AddSubscriberByUserIdAndSubIdAsync(userId, subId);
-            await _unitOfWork.SaveChangesAsync();
-        }
-
-        public async Task AddFriendByUserIdAndSubIdAsync(int userId, int subId)
-        {
-            if (await _unitOfWork.UsersInfo.UserContainsSubscriberAsync(subId, userId)) //cant apply friendship because he is sub
-                return;
-
-            if (await _unitOfWork.UsersInfo.UserContainsFriendAsync(userId, subId)) //they are already friends
-                return;
-
-            if (await _unitOfWork.UsersInfo.UserContainsSubscriberAsync(userId, subId))
-            {
-                await _unitOfWork.UsersInfo.AddFriendByUsersIdAndSubIdAsync(userId, subId);
-                await _unitOfWork.UsersInfo.AddFriendByUsersIdAndSubIdAsync(subId, userId);
-
-                await _unitOfWork.UsersInfo.DeleteSubscriptionAsync(userId, subId);
-
-                await _unitOfWork.SaveChangesAsync();
-            }
-        }
-
-        public async Task DeleteFriendshipByUserIdAndFriendIdAsync(int userId, int friendId)
-        {
-            if (await _unitOfWork.UsersInfo.UserContainsFriendAsync(userId, friendId))
-            {
-                await _unitOfWork.UsersInfo.DeleteFriendshipAsync(userId, friendId);
-                await _unitOfWork.UsersInfo.DeleteFriendshipAsync(friendId, userId);
-
-                await _unitOfWork.SaveChangesAsync();
-            }
-        }
-
-        public async Task DeleteSubscriptionByUserIdAndSubIdAsync(int userId, int subId)
-        {
-            if (await _unitOfWork.UsersInfo.UserContainsSubscriberAsync(userId, subId))
-            {
-                await _unitOfWork.UsersInfo.DeleteSubscriptionAsync(userId, subId);
-
-                await _unitOfWork.SaveChangesAsync();
-            }
-        }
-
-        public async Task<IEnumerable<UserInfoDTO>> GetFriendsByUserIdAsync(int userId, int toTake)
-        {
-            var friends = await _unitOfWork.UsersInfo.GetFriendsByUserIdAsync(userId, toTake);
-            var friendsDto = _mapper.Map<IEnumerable<UserInfoDTO>>(friends);
-            return friendsDto;
-        }
-
-        public async Task<IEnumerable<UserInfoDTO>> GetSubsByUserIdAsync(int userId, int toTake)
-        {
-            var subs = await _unitOfWork.UsersInfo.GetSubscribersByUserIdAsync(userId, toTake);
-            var subsDto = _mapper.Map<IEnumerable<UserInfoDTO>>(subs);
-            return subsDto;
-        }
-
-        public async Task UpdateUserInfoAsync(UserInfoDTO userInfoDto)
-        {
-            var userInfo = _mapper.Map<UserInfo>(userInfoDto);
-            _unitOfWork.UsersInfo.UpdateUserInfo(userInfo);
-            await _unitOfWork.SaveChangesAsync();
-        }
-
-        public async Task DeleteUserInfoByUserIdAsync(int userId)
-        {
-            await _unitOfWork.UsersInfo.DeleteUserInfoByUserId(userId);
-            await _unitOfWork.SaveChangesAsync();
+            return await _uow.UsersInfo.UserInfoExistsAsync(userInfoId);
         }
     }
 }

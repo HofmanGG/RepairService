@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelloSocNetw_BLL", "HelloSo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelloSocNetw_DAL", "HelloSocNetw_DAL\HelloSocNetw_DAL.csproj", "{F69D7CA7-BB57-4792-BE13-8BA22500704A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloSocNetw_NUnitTests", "HelloSocNetw_NUnitTests\HelloSocNetw_NUnitTests.csproj", "{816598E3-BD8C-4B20-AD9D-1DD0D053B974}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelloSocNetw_NUnitTests", "HelloSocNetw_NUnitTests\HelloSocNetw_NUnitTests.csproj", "{816598E3-BD8C-4B20-AD9D-1DD0D053B974}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

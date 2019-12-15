@@ -1,0 +1,8 @@
+.brd {
+    background-color: rgb(109, 100, 237);
+    padding: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border: solid #08704d 2px;
+    border-radius: 20px;
+}

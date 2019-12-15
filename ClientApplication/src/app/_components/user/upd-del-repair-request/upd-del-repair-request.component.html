@@ -1,0 +1,96 @@
+<div class="form-group">
+                <form [formGroup]="repairRequestsForm">
+                    <div formArrayName="repairRequests">
+                        <div *ngFor="let repairRequest of f.controls; let i = index" >
+                            <div [formGroupName]="i">
+                                <h4>Repair Request №{{i + 1}}</h4>
+                                <div class="row">
+                                    <div class="col-md-9 brd" [style.background-color]="f.at(i).controls.repairStatus.value === 'Closed' ? '#b95656' : '#4da145'">
+    
+                                <div class="row">
+                                    <div class="col">
+                                        Repair Request Id
+                                    </div>
+                                    <div class="col">
+                                        <input readonly class="form-control" formControlName="repairRequestId" />
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col">
+                                        Request Date
+                                    </div>
+                                    <div class="col">
+                                        <input readonly class="form-control" formControlName="requestDate" />
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col">
+                                        Repair Status
+                                    </div>
+                                    <div class="col">
+                                        <select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()"  onblur="this.size=0;" formControlName="repairStatus" class="form-control">
+                                            <option *ngFor="let status of repairStatuses"  [ngValue]="status">
+                                                {{status}}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col">
+                                        Product Name
+                                    </div>
+                                    <div class="col">
+                                        <input class="form-control" formControlName="productName" 
+                                        [ngClass]="{ 'is-invalid': fg(i).submitted.value && fg(i).productName.errors }" />
+                                        <div *ngIf="fg(i).submitted.value && fg(i).productName.errors" class="invalid-feedback">
+                                            <div *ngIf="fg(i).productName.required">Product Name is Required</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col">
+                                        Comment
+                                    </div>
+                                    <div class="col">
+                                        <input class="form-control" formControlName="comment" 
+                                        [ngClass]="{ 'is-invalid': fg(i).submitted.value && fg(i).comment.errors }" />
+                                        <div *ngIf="fg(i).submitted.value && fg(i).comment.errors" class="invalid-feedback">
+                                            <div *ngIf="fg(i).comment.required">Comment is Required</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                                
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <button [disabled]="fg(i).updLoading.value" class="btn btn-primary" (click)="updateRepairRequest(i)">
+                                        <span *ngIf="fg(i).updLoading.value" class="spinner-border spinner-border-sm mr-1"></span>
+                                        Update Request
+                                    </button>
+                                </div>
+                                <div class="form-group">
+                                    <button [disabled]="fg(i).delLoading.value" class="btn btn-danger" (click)="deleteRepairRequest(i)">
+                                        <span *ngIf="fg(i).delLoading.value" class="spinner-border spinner-border-sm mr-1"></span>
+                                        Delete Request
+                                    </button>
+                                </div>
+                                <div *ngIf="fg(i).updateSuccess.value" class="alert alert-success" role="alert">Successfully Updated!!!</div>
+                                <div *ngIf="fg(i).updateBadRequest.value" class="alert alert-danger" role="alert">Not Valid Model</div>
+                                <div *ngIf="fg(i).updateNotFound.value" class="alert alert-danger" role="alert">Such Repair Request Doesnot Exist</div>
+                                <div *ngIf="fg(i).updateUnknownError.value" class="alert alert-danger" role="alert">Unknown Error</div>
+
+                                <div *ngIf="fg(i).delSuccess.value" class="alert alert-success" role="alert">Successfully Deleted!!!</div>
+                                <div *ngIf="fg(i).delBadRequest.value" class="alert alert-danger" role="alert">Not Valid Model</div>
+                                <div *ngIf="fg(i).delNotFound.value" class="alert alert-danger" role="alert">Repair Request is Not Found</div>
+                                <div *ngIf="fg(i).delUnknownError.value" class="alert alert-danger" role="alert">Unknown Error</div>
+                            </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+    </div>

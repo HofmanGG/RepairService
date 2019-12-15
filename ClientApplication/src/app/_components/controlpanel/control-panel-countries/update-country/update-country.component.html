@@ -1,0 +1,42 @@
+<form [formGroup]="updateCountryForm" (ngSubmit)="UpdateCountry()">
+    <h4>Update Country</h4>
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()" onblur="this.size=0;" class="form-control" formControlName="countryId"
+                [ngClass]="{ 'is-invalid': submitted && f.countryId.errors }">>
+                <option value="" disabled>Choose country</option>
+                <option *ngFor="let country of countryService.countries | async" [ngValue]="country.countryId">
+                    {{country.countryName}}
+                </option>
+            </select>
+            <div *ngIf="submitted && f.countryId.errors" class="invalid-feedback">
+                <div *ngIf="f.countryId.errors.required">Country is required</div>
+            </div>
+        </div>
+        <div class="form-group col-md-6">
+            <input type="text" formControlName="countryName" class="form-control" placeholder="New Country Name"
+                [ngClass]="{ 'is-invalid': submitted && f.countryName.errors }" />
+            <div *ngIf="submitted && f.countryName.errors" class="invalid-feedback">
+                <div *ngIf="f.countryName.errors.required">Name of country is required</div>
+                <div *ngIf="f.countryName.errors.minlength">Country Name must have at least 2 characters</div>
+                <div *ngIf="f.countryName.errors.maxlength">Last Name cant have more than 30 characters</div>
+            </div>  
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <button [disabled]="loading" class="btn btn-primary">
+                    <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                    Update !!!
+                </button>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div *ngIf="sc.success" class="alert alert-success" role="alert">Country Was Successfully Updated</div>
+            <div *ngIf="sc.notFound" class="alert alert-danger" role="alert">Country Not Found</div>
+            <div *ngIf="sc.conflict" class="alert alert-danger" role="alert">Such Country Already Exists</div>
+            <div *ngIf="sc.unknownError" class="alert alert-danger" role="alert">Unknown error</div>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,48 @@
+<div *ngIf="repairRequests.length; else elseBlock">
+<h2>Your Repair Requests</h2>
+                <div *ngFor="let repairRequest of repairRequests; let i = index" >
+                        <h4>Repair Request №{{i + 1}}</h4>
+                        <div class="row">
+                            <div class="col-md-9 brd" [style.background-color]="repairRequest.repairStatus === 'Closed' ? '#b95656' : '#4da145'">
+
+
+                        <div class="row">
+                            <div class="col">
+                                Request Date
+                            </div>
+                            <div class="col">
+                                <p>{{repairRequest.requestDay}}-{{repairRequest.requestMonth}}-{{repairRequest.requestYear}}</p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col">
+                                Repair Status
+                            </div>
+                            <div class="col">
+                                <p>{{repairRequest.repairStatus}}</p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col">
+                                Product Name
+                            </div>
+                            <div class="col">
+                                <p>{{repairRequest.productName}}</p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col">
+                                Comment
+                            </div>
+                            <div class="col">
+                                <p>{{repairRequest.comment}}</p>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <ng-template #elseBlock><h1>You have no repair requests</h1></ng-template>

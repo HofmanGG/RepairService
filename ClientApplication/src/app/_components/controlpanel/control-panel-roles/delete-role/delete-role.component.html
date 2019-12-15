@@ -1,0 +1,32 @@
+<form [formGroup]="deleteRoleForm" (ngSubmit)="DeleteRole()">
+        <h4>Delete Role</h4>
+        <div class="form-group">
+            <select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()" onblur="this.size=0;" class="form-control" formControlName="id" 
+                [ngClass]="{ 'is-invalid': submitted && f.id.errors }">>
+                <option value="" disabled>Choose Role</option>
+                <option *ngFor="let role of roleService.roles | async" [ngValue]="role.id">
+                    {{role.name}}
+                </option>
+            </select>
+            <div *ngIf="submitted && f.id.errors" class="invalid-feedback">
+                <div *ngIf="f.id.errors.required">Role is required</div>
+            </div>
+        </div>
+    
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <button [disabled]="loading" class="btn btn-danger">
+                        <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                        Delete !!!
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div *ngIf="sc.success" class="alert alert-success" role="alert">Role Was Successfully Deleted</div>
+                <div *ngIf="sc.badRequest" class="alert alert-danger" role="alert">Not valid model</div>
+                <div *ngIf="sc.notFound" class="alert alert-danger" role="alert">Such role is not found</div>
+                <div *ngIf="sc.unknownError" class="alert alert-danger" role="alert">Unknown error</div>
+            </div>
+        </div>
+    </form>

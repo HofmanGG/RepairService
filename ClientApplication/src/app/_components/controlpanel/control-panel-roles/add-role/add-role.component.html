@@ -1,0 +1,32 @@
+<form [formGroup]="addNewRoleForm" (ngSubmit)="AddNewRole()">
+        <h4>Add New Role</h4>
+        <div class="form-group">
+            <input placeholder="New Role" type="text" formControlName="name" class="form-control"
+                [ngClass]="{ 'is-invalid': submitted && f.name.errors }" />
+            <div *ngIf="submitted && f.name.errors" class="invalid-feedback">
+                <div *ngIf="f.name.errors.required">Name of role is required.</div>
+                <div *ngIf="f.name.errors.minlength">Role Name must have at least 2 characters</div>
+                <div *ngIf="f.name.errors.maxlength">Role Name cant have more than 15 characters</div>
+            </div>
+            <div *ngIf="submitted && f.name.errors" class="invalid-feedback">
+            </div>
+        </div>
+    
+    
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <button [disabled]="loading" class="btn btn-primary">
+                        <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                        Add !!!
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div *ngIf="sc.success" class="alert alert-success" role="alert">Role Was Successfully Created</div>
+                <div *ngIf="sc.conflict" class="alert alert-danger" role="alert">Such Role Already Exists</div>
+                <div *ngIf="sc.badRequest" class="alert alert-danger" role="alert">Not Valid Role Name</div>
+                <div *ngIf="sc.unknownError" class="alert alert-danger" role="alert">Unknown error</div>
+            </div>
+        </div>
+    </form>

@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using HelloSocNetw_DAL.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -10,23 +13,23 @@ namespace HelloSocNetw_DAL.Identity
     public class AppUserManager : UserManager<AppIdentityUser>
     {
         public AppUserManager(
-            IUserStore<AppIdentityUser> store, 
-            IOptions<IdentityOptions> optionsAccessor, 
-            IPasswordHasher<AppIdentityUser> passwordHasher, 
+            IUserStore<AppIdentityUser> store,
+            IOptions<IdentityOptions> optionsAccessor,
+            IPasswordHasher<AppIdentityUser> passwordHasher,
             IEnumerable<IUserValidator<AppIdentityUser>> userValidators,
-            IEnumerable<IPasswordValidator<AppIdentityUser>> passwordValidators, 
-            ILookupNormalizer keyNormalizer, 
-            IdentityErrorDescriber errors, 
+            IEnumerable<IPasswordValidator<AppIdentityUser>> passwordValidators,
+            ILookupNormalizer keyNormalizer,
+            IdentityErrorDescriber errors,
             IServiceProvider services,
-            ILogger<UserManager<AppIdentityUser>> logger) 
-            : base(store, 
-                optionsAccessor, 
+            ILogger<UserManager<AppIdentityUser>> logger)
+            : base(store,
+                optionsAccessor,
                 passwordHasher,
-                userValidators, 
+                userValidators,
                 passwordValidators,
-                keyNormalizer, 
+                keyNormalizer,
                 errors,
-                services, 
+                services,
                 logger)
         {
         }

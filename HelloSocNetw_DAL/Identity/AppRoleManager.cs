@@ -5,14 +5,14 @@ using Microsoft.Extensions.Logging;
 
 namespace HelloSocNetw_DAL.Identity
 {
-    public class AppRoleManager : RoleManager<AppUserRole>
+    public class AppRoleManager : RoleManager<AppRole>
     {
         public AppRoleManager(
-            IRoleStore<AppUserRole> store,
-            IEnumerable<IRoleValidator<AppUserRole>> roleValidators,
+            IRoleStore<AppRole> store,
+            IEnumerable<IRoleValidator<AppRole>> roleValidators,
             ILookupNormalizer keyNormalizer, 
             IdentityErrorDescriber errors,
-            ILogger<RoleManager<AppUserRole>> logger)
+            ILogger<RoleManager<AppRole>> logger)
             : base(store,
                 roleValidators,
                 keyNormalizer,

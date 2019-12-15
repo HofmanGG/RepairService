@@ -1,0 +1,32 @@
+<form [formGroup]="deleteCountryForm" (ngSubmit)="DeleteCountry()">
+    <h4>Delete Country</h4>
+    <div class="form-group">
+        <select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()" onblur="this.size=0;" class="form-control" formControlName="countryId" 
+            [ngClass]="{ 'is-invalid': submitted && f.countryId.errors }">>
+            <option value="" disabled>Choose your country</option>
+            <option *ngFor="let country of countryService.countries | async" [ngValue]="country.countryId">
+                {{country.countryName}}
+            </option>
+        </select>
+        <div *ngIf="submitted && f.countryId.errors" class="invalid-feedback">
+            <div *ngIf="f.countryId.errors.required">Country is required</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <button [disabled]="loading" class="btn btn-danger">
+                    <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                    Delete !!!
+                </button>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div *ngIf="sc.success" class="alert alert-success" role="alert">Country Was Successfully Deleted</div>
+            <div *ngIf="sc.badRequest" class="alert alert-danger" role="alert">Wrong Country</div>
+            <div *ngIf="sc.notFound" class="alert alert-danger" role="alert">Country Not Found</div>
+            <div *ngIf="sc.unknownError" class="alert alert-danger" role="alert">Unknown error</div>
+        </div>
+    </div>
+</form>

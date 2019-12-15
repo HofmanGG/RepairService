@@ -1,6 +1,7 @@
-﻿using AutoMapper;
+﻿    using AutoMapper;
 using HelloSocNetw_BLL.EntitiesDTO;
 using HelloSocNetw_PL.Models;
+using HelloSocNetw_PL.Models.CountryModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,9 @@ namespace HelloSocNetw_PL.Infrastructure.MapperProfiles
         public CountryModelProfile()
         {
             CreateMap<CountryModel, CountryDTO>();
+            CreateMap<NewCountryModel, CountryDTO>();
+            CreateMap<UpdateCountryModel, CountryDTO>();
+
             CreateMap<CountryDTO, CountryModel>();
         }
     }

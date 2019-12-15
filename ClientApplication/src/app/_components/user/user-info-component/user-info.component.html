@@ -1,0 +1,10 @@
+<div class="bg">
+<h4>Information About This User</h4>
+  <div *ngIf="(user$ | async) as u">
+    <p><span class="font-weight-bold">First Name:</span> {{u.firstName}}</p>
+    <p><span class="font-weight-bold">Last Name:</span> {{u.lastName}}</p>
+    <p><span class="font-weight-bold">Day Of Birth:</span> {{u.dayOfBirth}}-{{u.monthOfBirth}}-{{u.yearOfBirth}}</p>
+    <p><span class="font-weight-bold">Gender:</span> {{u.gender}}</p>
+    <p><span class="font-weight-bold">Country:</span> {{u.countryName}}</p>
+  </div>
+</div>

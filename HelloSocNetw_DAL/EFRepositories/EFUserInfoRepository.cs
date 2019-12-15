@@ -5,6 +5,8 @@ using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HelloSocNetw_DAL.Entities;
+using HelloSocNetw_DAL.Infrastructure;
+using HelloSocNetw_DAL.Infrastructure.Exceptions;
 using HelloSocNetw_DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,17 +15,24 @@ namespace HelloSocNetw_DAL.EFRepositories
     public class EfUserInfoRepository : IUserInfoRepository
     {
         private readonly SocNetwContext _context;
+        private readonly IIncludesParser<UserInfo> _includesParser;
 
-        public EfUserInfoRepository(DbContext dbContext) => _context = dbContext as SocNetwContext;
-
-        public async Task<UserInfo> SingleOrDefaultUserInfoAsync(Expression<Func<UserInfo, bool>> predicate)
+        public EfUserInfoRepository(DbContext dbContext, IIncludesParser<UserInfo> includesParser)
         {
-            return await _context.UsersInfo.SingleOrDefaultAsync(predicate);
+            _context = dbContext as SocNetwContext;
+            _includesParser = includesParser;
         }
 
-        public async Task<UserInfo> GetUserInfoByIdAsync(int id)
+        public async Task<UserInfo> GetUserInfoByUserInfoIdAsync(int userInfoId)
         {
-            return await _context.UsersInfo.FindAsync(id);
+            return await _context.UsersInfo.FindAsync(userInfoId);
+        }
+
+        public async Task<UserInfo> GetUserInfoByAppIdentityIdAsync(Guid appIdentityUserId)
+        {
+            return await _context.UsersInfo
+                .Include(u => u.Country)
+                .FirstOrDefaultAsync(u => u.AppIdentityUserId == appIdentityUserId);
         }
 
         public async Task<IEnumerable<UserInfo>> GetUsersInfoAsync(int toSkip, int toTake)
@@ -34,98 +43,110 @@ namespace HelloSocNetw_DAL.EFRepositories
                 .ToListAsync();
         }
 
-        public async Task<bool> UserContainsSubscriberAsync(int userId, int subId)
+        public async Task<UserInfo> GetUserInfoAsync(Expression<Func<UserInfo, bool>> filter, string includeProperties = "")
         {
-            return await _context.Subscribers.AnyAsync(t => t.UserId == userId && t.SubscriberId == subId);
-        }
+            var query = _context.UsersInfo.AsQueryable();
 
-        public async Task<bool> UserContainsFriendAsync(int userId, int subId)
-        {
-            return await _context.Subscribers.AnyAsync(t => t.UserId == userId && t.SubscriberId == subId);
-        }
-
-        public async Task<int> GetCountOfUsersInfoAsync() => await _context.UsersInfo.CountAsync();
-
-        public async Task<int> GetCountOfFriendsByUserIdAsync(int id)
-        {
-            return await _context.Friends.Where(u => u.UserId == id).CountAsync();
-        }
-
-        public async Task<int> GetCountOfSubscribersByUserIdAsync(int id)
-        {
-            return await _context.Subscribers.Where(u => u.UserId == id).CountAsync();
-        }
-
-        public IQueryable<UserInfo> FindUsersInfo(Expression<Func<UserInfo, bool>> predicate) => _context.UsersInfo.Where(predicate);
-
-        public void AddUserInfo(UserInfo userInfo) => _context.UsersInfo.Add(userInfo);
-
-        public void AddUsersInfo(IEnumerable<UserInfo> usersInfo) => _context.UsersInfo.AddRange(usersInfo);
-
-        public async Task AddSubscriberByUserIdAndSubIdAsync(int userId, int subId)
-        {
-            var user = await _context.UsersInfo.FindAsync(userId);
-            var subscription = new SubscribersTable()
+            if (filter != null)
             {
-                UserId = userId,
-                SubscriberId = subId
-            };
-            user.Subscribers.Add(subscription);
+                query = query.Where(filter);
+            }
+
+            _includesParser.AddIncludes(query, includeProperties);
+
+            return await query.FirstOrDefaultAsync();
         }
-
-        public async Task AddFriendByUsersIdAndSubIdAsync(int userId, int subId)
+        public async Task<IEnumerable<UserInfo>> GetUsersInfoAsync(
+            Expression<Func<UserInfo, bool>> filter = null,
+            Func<IQueryable<UserInfo>, IOrderedQueryable<UserInfo>> orderBy = null,
+            string includeProperties = "")
         {
-            var user = await _context.UsersInfo.FindAsync(userId);
+            var query = _context.UsersInfo.AsQueryable();
 
-            var friendshipForUser = new FriendshipTable()
+            if (filter != null)
             {
-                UserId = userId,
-                FriendId = subId
-            };
-            user.Friends.Add(friendshipForUser);
+                query = query.Where(filter);
+            }
+
+            _includesParser.AddIncludes(query, includeProperties);
+
+            if (orderBy != null)
+            {
+                return await orderBy(query).ToListAsync();
+            }
+            else
+            {
+                return await query.ToListAsync();
+            }
         }
 
-        public async Task DeleteSubscriptionAsync(int userId, int subId)
+        public async Task<TType> GetAsync<TType>(Expression<Func<UserInfo, bool>> filter, Expression<Func<UserInfo, TType>> select) where TType : class
         {
-            var subscription = await _context.Subscribers.FirstOrDefaultAsync(t => t.UserId == userId && t.SubscriberId == subId);
-            _context.Subscribers.Remove(subscription);
+            var foundObject =  await _context.UsersInfo.Where(filter).Select(select).FirstOrDefaultAsync();
+            if (foundObject == null)
+                throw new ObjectNotFoundException("Object with such filter is not found");
+            else
+                return foundObject;
         }
 
-        public async Task DeleteFriendshipAsync(int userId, int friendId)
+        public async Task<int> GetUserInfoIdByEmailAsync(string email)
         {
-            var subscription = await _context.Friends.FirstOrDefaultAsync(t => t.UserId == userId && t.FriendId == friendId);
-            _context.Friends.Remove(subscription);
+            return await _context.UsersInfo
+                .Where(u => u.AppIdentityUser.Email == email)
+                .Select(u => u.UserInfoId)
+                .FirstOrDefaultAsync();
         }
 
-        public async Task DeleteUserInfoByUserId(int userId)
+        public async Task<int> GetCountOfUsersInfoAsync()
         {
-            var user = await _context.UsersInfo.FindAsync(userId);
-            _context.UsersInfo.Remove(user);
+            return await _context.UsersInfo.CountAsync();
         }
 
-        public async Task<IEnumerable<UserInfo>> GetFriendsByUserIdAsync(int id, int toTake)
+        public void AddUserInfo(UserInfo userInfoToAdd)
         {
-            var friends = await _context.Friends
-                .Where(u => u.UserId == id)
-                .Select(u => u.Friend)
-                .ToListAsync();
-
-            return friends;
+            _context.UsersInfo.Add(userInfoToAdd);
         }
 
-        public async Task<IEnumerable<UserInfo>> GetSubscribersByUserIdAsync(int id, int toTake)
+        public void AddUsersInfo(IEnumerable<UserInfo> usersInfoToAdd)
         {
-            var subs = await _context.Subscribers
-                .Where(u => u.UserId == id)
-                .Select(u => u.Subscriber)
-                .ToListAsync();
-
-            return subs;
+            _context.UsersInfo.AddRange(usersInfoToAdd);
         }
 
-        public void UpdateUserInfo(UserInfo userInfo)
+        public async Task DeleteUserInfoByUserInfoId(int userInfoId)
         {
-            _context.UsersInfo.Update(userInfo);
+            var userInfoToDelete = await _context.UsersInfo.FindAsync(userInfoId);
+            _context.UsersInfo.Remove(userInfoToDelete);
+        }
+
+        public void DeleteUserInfo(UserInfo userInfoToDelete)
+        {
+            if (_context.Entry(userInfoToDelete).State == EntityState.Detached)
+            {
+                _context.UsersInfo.Attach(userInfoToDelete);
+            }
+            _context.UsersInfo.Remove(userInfoToDelete);
+        }
+
+        public void UpdateUserInfo(UserInfo userInfoToChange)
+        {
+            _context.UsersInfo.Update(userInfoToChange);
+        }
+
+        private void DetachEntity(UserInfo userInfoToDetach)
+        {
+            var local = _context.Set<UserInfo>()
+               .Local
+               .FirstOrDefault(u => u.UserInfoId == userInfoToDetach.UserInfoId);
+
+            if (local != null)
+            {
+                _context.Entry(local).State = EntityState.Detached;
+            }
+        }
+
+        public async Task<bool> UserInfoExistsAsync(int userInfoId)
+        {
+            return await _context.UsersInfo.AnyAsync(u => u.UserInfoId == userInfoId);
         }
     }
 }

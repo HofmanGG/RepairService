@@ -1,0 +1,57 @@
+<h4>Add New Repair Request</h4>
+<div class="form-group">
+    <form [formGroup]="repairRequestForm">
+        <div class="brd">
+            
+            <div class="form-row">
+                <div class="col">
+                    Repair Status
+                </div>
+                <div class="col">
+                        <div class="form-group">
+                    <select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()"  onblur="this.size=0;" formControlName="repairStatus" class="form-control">
+                        <option *ngFor="let status of repairStatuses"  [ngValue]="status">
+                            {{status}}
+                        </option>
+                    </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col">
+                    Product Name
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                    <input class="form-control" formControlName="productName" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col">
+                    Comment
+                </div>
+                <div class="col">
+                        <div class="form-group">
+                    <input class="form-control" formControlName="comment" />
+                    </div>
+                </div>
+            </div>
+        </div>
+                        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <button class="btn btn-primary" (click)="addRepairRequest()">Add Repair Request</button>
+                </div>
+            </div>
+            <div class="col-md-4 offset-md-2">
+                <div *ngIf="sc.success" class="alert alert-success" role="alert">Repair Request Was Successfully Created</div>
+                <div *ngIf="sc.badRequest" class="alert alert-danger" role="alert">Not Valid Repair Request</div>
+                <div *ngIf="sc.unknownError" class="alert alert-danger" role="alert">Unknown error</div>
+            </div>
+        </div>
+    </form>
+</div>

@@ -1,141 +1,180 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Net.Http;
 using AutoMapper;
+using BLL.ModelsDTO;
 using HelloSocNetw_BLL.Interfaces;
+using HelloSocNetw_DAL.Infrastructure.Exceptions;
 using HelloSocNetw_PL.Infrastructure;
 using HelloSocNetw_PL.Models;
+using HelloSocNetw_PL.Models.UserInfoModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using static HelloSocNetw_PL.Infrastructure.ControllerExtensions;
+using Microsoft.Extensions.Logging;
+using static HelloSocNetw_PL.Infrastructure.ControllerExtension;
 
 namespace PL.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Manager, Admin")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public class UsersController : ControllerBase
     {
-        private readonly IUserInfoService _userInfoService;
-        private readonly IMapper _mapper;
+        private readonly IUserInfoService _userInfoSvc;
+        private readonly IMapper _mpr;
+        private readonly ILogger _lgr;
 
-        public UsersController(IUserInfoService userInfoService, IMapper mapper)
+        public UsersController(IUserInfoService userInfoService, IMapper mapper, ILogger<UsersController> logger)
         {
-            _userInfoService = userInfoService;
-            _mapper = mapper;
+            _userInfoSvc = userInfoService;
+            _mpr = mapper;
+            _lgr = logger;
         }
 
-        //GET: api/Users/5
-        [HttpGet]
-        [Route("{userId}")]
-        public async Task<IActionResult> GetUserByIdAsync(int userId)
+        /// <summary>
+        /// Returnes userInfo by userId
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /{userId}
+        ///     {
+        ///     }
+        ///
+        /// </remarks>
+        /// <response code="200">Returnes userInfo</response>
+        /// <response code="404">If userInfo with such userId is not found</response>
+        /// <response code="500">If an exception on server is thrown</response>
+        [HttpGet("{userInfoId}")]
+        [ProducesResponseType(200), ProducesResponseType(404)]
+        public async Task<ActionResult<UserInfoModel>> GetUser(int userInfoId)
         {
-            var userInfoDto = await _userInfoService.GetUserInfoByIdAsync(userId);
-            var userInfoModel = _mapper.Map<UserInfoModel>(userInfoDto);
-            return Ok(userInfoModel);
+            _lgr.LogInformation(LoggingEvents.GetItem, "Getting userInfo {userInfoId}", userInfoId);
+            var userInfoDto = await _userInfoSvc.GetUserInfoByUserInfoIdAsync(userInfoId);
+            if (userInfoDto == null)
+            {
+                _lgr.LogWarning(LoggingEvents.GetItem, "GetUser({userInfoId}) NOT FOUND", userInfoId);
+                return NotFound();
+            }
+
+            var userInfoModel = _mpr.Map<UserInfoModel>(userInfoDto);
+            return userInfoModel;
         }
 
-        // POST: api/Users/
-        [HttpPost]
-        public async Task<IActionResult> GetUsersAsync([FromBody]int from)
+        /// <summary>
+        /// Gets userInfoId by email
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /?email={email}
+        ///     {
+        ///     }
+        ///
+        /// </remarks>
+        /// <response code="200">Returnes userInfoId</response>
+        /// <response code="404">Returnes userInfo with such email is not found</response>
+        /// <response code="500">If an exception on server is thrown</response>
+        [HttpGet("email")]
+        [ProducesResponseType(200), ProducesResponseType(404)]
+        public async Task<ActionResult<int>> GetUserInfoIdByEmail(string email)
         {
-            var usersInfoDto = await _userInfoService.GetUsersInfoAsync(from, 10);
-            var userModels = _mapper.Map<IEnumerable<UserInfoModel>>(usersInfoDto);
-            return Ok(userModels);
+            _lgr.LogInformation(LoggingEvents.GetItem, "Getting userInfoId by email {email}", email);
+
+            var id = await _userInfoSvc.GetUserInfoIdByEmailAsync(email);
+            return id;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> AddFriendByFriendId(int subId)
+        /// <summary>
+        /// Gets count of all users
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /count
+        ///     {
+        ///     }
+        ///
+        /// </remarks>
+        /// <response code="200">Returnes count of all users</response>
+        /// <response code="500">If an exception on server is thrown</response>
+        [HttpGet("count")]
+        [ProducesResponseType(200)]
+        public async Task<ActionResult<int>> GetCountOfUsers()
         {
-            var userId = this.GetUserId();
-
-            await _userInfoService.AddFriendByUserIdAndSubIdAsync(userId, subId);
-            return Ok();
+            _lgr.LogInformation(LoggingEvents.GetItem, "Getting count of all users");
+            return await _userInfoSvc.GetCountOfUsersInfoAsync();
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteFriendByFriendId(int friendId)
+        /// <summary>
+        /// Changes accounts info
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     PUT /count
+        ///     {
+        ///     }
+        ///
+        /// </remarks>
+        /// <response code="200">Returnes total count of users</response>
+        /// <response code="500">If an exception on server is thrown</response>
+        [HttpPut("{userInfoId}")]
+        [AllowAnonymous]
+        [ProducesResponseType(200), ProducesResponseType(400), ProducesResponseType(403), ProducesResponseType(404)]
+        public async Task<ActionResult<UserInfoModel>> ChangeUserInfo(int userInfoId, UpdateUserInfoModel userInfoModel)
         {
-            var userId = this.GetUserId();
+            if (!User.Identity.IsAuthenticated)
+                return Forbid();
 
-            await _userInfoService.DeleteFriendshipByUserIdAndFriendIdAsync(userId, friendId);
-            return Ok();
+            if (userInfoId != userInfoModel.UserInfoId)
+                return BadRequest();
+
+            var authorizedUserId = this.GetUserId();
+
+            var userInfoToUpdate = await _userInfoSvc.GetUserInfoByAppIdentityIdAsync(authorizedUserId);
+            if (userInfoToUpdate == null)
+            {
+                _lgr.LogWarning(LoggingEvents.UpdateItemNotFound, "ChangeUserInfo({userInfoId}) NOT FOUND", userInfoId);
+                return NotFound();
+            }
+
+            var newUserInfoDto = _mpr.Map<UserInfoDTO>(userInfoModel);
+
+            var successfullyUpdated = await _userInfoSvc.UpdateUserInfoAsync(newUserInfoDto);
+            if (successfullyUpdated)
+            {
+                _lgr.LogInformation(LoggingEvents.UpdateItem, "User Info {userInfoId} is changed", userInfoId);
+
+                var changedUserInfoDto = await _userInfoSvc.GetUserInfoByUserInfoIdAsync(userInfoId);
+                var changedUserInfoModel = _mpr.Map<UserInfoModel>(changedUserInfoDto);
+
+                return changedUserInfoModel;
+            }
+            else
+            {
+                _lgr.LogWarning(LoggingEvents.UpdateItemBadRequest, "ChangeUserInfo({userInfoId}) BAD REQUEST", userInfoId);
+                return BadRequest();
+            }
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> UnsubscribeByUserId(int userId)
-        {
-            var subId = this.GetUserId();
-
-            await _userInfoService.DeleteSubscriptionByUserIdAndSubIdAsync(userId, subId);
-            return Ok();
-        }
-
-        // DELETE: api/Users/5
+        //не используется, заменен Accounts.DeleteAccount
+        [HttpDelete("{userInfoId}")]
         [Authorize(Roles = "Admin")]
-        [HttpDelete("{userId}")]
-        public IActionResult Delete(int userId)
+        [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(404)]
+        public async Task<IActionResult> DeleteUser(int userInfoId)
         {
-            _userInfoService.DeleteUserInfoByUserIdAsync(userId);
-            return Ok();
-        }
+            var userInfoExists = await _userInfoSvc.UserInfoExistsAsync(userInfoId);
+            if (!userInfoExists)
+                return NotFound();
 
-        /*[HttpPost]
-        [Authorize]
-        [Route("avatar")]
-        public async Task<IActionResult> AddAvatarAsync()
-        {
-            string imageName = null;
-            var httpRequest = System.Web.HttpContext.Current.Request;
-
-            var postedFile = httpRequest.Files["Image"];
-
-            imageName = new String(Path.GetFileNameWithoutExtension(postedFile.FileName).Take(10).ToArray()).Replace(" ", "-");
-            imageName = imageName + DateTime.Now.ToString("yymmssfff") + Path.GetExtension(postedFile.FileName);
-            var filePath = HttpContext.Current.Server.MapPath("~/Image/" + imageName);
-            postedFile.SaveAs(filePath);
-        }*/
-
-
-        [HttpGet]
-        [Route("{userId}/friends/count")]
-        public async Task<IActionResult> GetCountOfFriendsByUserId(int userId)
-        {
-            return Ok(await _userInfoService.GetCountOfFriendsByUserIdAsync(userId));
-        }
-
-        [HttpGet]
-        [Route("{userId}/subscribers/count")]
-        public async Task<IActionResult> GetCountOfSubscribersByUserId(int userId)
-        {
-            return Ok(await _userInfoService.GetCountOfSubscribersByUserIdAsync(userId));
-        }
-
-        [HttpGet]
-        [Route("count")]
-        public async Task<IActionResult> GetCountOfUsersAsync()
-        {
-            return Ok(await _userInfoService.GetCountOfUsersInfoAsync());
-        }
-
-        [HttpPost]
-        [Route("{userId}/friends")]
-        public async Task<IActionResult> GetFriendsAsync(int userId, int toTake)
-        {
-            var friendsDto = await _userInfoService.GetFriendsByUserIdAsync(userId, toTake);
-            var friendModels = _mapper.Map<IEnumerable<UserInfoModel>>(friendsDto);
-            return Ok(friendModels);
-        }
-
-        [HttpPost]
-        [Route("{userId}/subscribers")]
-        public async Task<IActionResult> GetSubsAsync(int userId, int toTake)
-        {
-            var subsDto = await _userInfoService.GetSubsByUserIdAsync(userId, toTake);
-            var subModels = _mapper.Map<IEnumerable<UserInfoModel>>(subsDto);
-            return Ok(subModels);
+            if (await _userInfoSvc.DeleteUserInfoByUserIdAsync(userInfoId))
+                return NoContent();
+            else
+                return BadRequest();
         }
     }   
 }

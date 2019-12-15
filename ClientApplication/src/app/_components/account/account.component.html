@@ -1,0 +1,116 @@
+<div class="col-md-6 offset-md-3 padding">
+<h2>Change Account Information</h2>
+<form [formGroup]="changeInfoForm" (ngSubmit)="onSubmit()">
+
+  <div class="form-row">
+    <div class="col">
+        <div class="form-group">
+            <label for="firstname">First Name</label>
+            <input type="text" formControlName="firstName" class="form-control" placeholder="First Name"
+                [ngClass]="{ 'is-invalid': submitted && f.firstName.errors }" />
+            <div *ngIf="submitted && f.firstName.errors" class="invalid-feedback">
+                <div *ngIf="f.firstName.errors.required">First Name is required</div>
+                <div *ngIf="f.firstName.errors.minlength">First Name must have at least 2 characters</div>
+                <div *ngIf="f.firstName.errors.maxlength">First Name cant have more than 20 characters</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input type="text" formControlName="lastName" class="form-control" placeholder="Last Name"
+                [ngClass]="{ 'is-invalid': submitted && f.lastName.errors }" />
+            <div *ngIf="submitted && f.lastName.errors" class="invalid-feedback">
+                <div *ngIf="f.lastName.errors.required">Last Name is required</div>
+                <div *ngIf="f.lastName.errors.minlength">Last Name must have at least 2 characters</div>
+                <div *ngIf="f.lastName.errors.maxlength">Last Name cant have more than 20 characters</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="form-row">
+    <div class="col">
+        <div class="form-group">
+                <label for="password">Gender</label>
+                <select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()"  onblur="this.size=0;" formControlName="gender" class="form-control"
+                    [ngClass]="{ 'is-invalid': submitted && f.gender.errors }">
+                    <option value="" disabled>Choose Your Gender</option>
+                    <option *ngFor="let gender of genders" [ngValue]="gender">
+                    {{gender}}
+                </option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col">Date Of Birth</div>
+</div>
+<div class="form-row">
+    <div class="col">
+        <div class="form-group">
+        <select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()"  onblur="this.size=0;" formControlName="dayOfBirth" class="form-control"
+            [ngClass]="{ 'is-invalid': submitted && f.dayOfBirth.errors }">
+            <option value="" disabled hidden>Day Of Birth</option>
+            <option *ngFor="let day of days" [ngValue]="day">
+                {{day}}
+            </option>
+        </select>
+        <div *ngIf="submitted && f.dayOfBirth.errors" class="invalid-feedback">
+            <div *ngIf="f.dayOfBirth.errors.required">Day is required</div>
+            <div *ngIf="f.dayOfBirth.errors.dateMustBeValid">Invalid day</div>
+        </div>
+        </div>
+    </div>
+    <div class="col">
+            <div class="form-group">
+        <select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()"  onblur="this.size=0;" formControlName="monthOfBirth" class="form-control"
+            [ngClass]="{ 'is-invalid': submitted && f.monthOfBirth.errors }">
+            <option value="" disabled hidden>Month Of Birth</option>
+            <option *ngFor="let month of months" [ngValue]="month">
+                {{month}}
+            </option>
+        </select>
+        <div *ngIf="submitted && f.monthOfBirth.errors" class="invalid-feedback">
+            <div *ngIf="f.monthOfBirth.errors.required">Month is required</div>
+        </div>
+        </div>
+    </div>
+    <div class="col">
+            <div class="form-group">
+        <select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()"  onblur="this.size=0;" formControlName="yearOfBirth" class="form-control"
+            [ngClass]="{ 'is-invalid': submitted && f.yearOfBirth.errors }">
+            <option value="" disabled hidden>Year Of Birth</option>
+            <option *ngFor="let year of years" [ngValue]="year">
+                {{year}}
+            </option>
+        </select>
+        <div *ngIf="submitted && f.yearOfBirth.errors" class="invalid-feedback">
+            <div *ngIf="f.yearOfBirth.errors.required">Year is required</div>
+        </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="form-group">
+    <label for="country">Country</label>
+    <select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()"  onblur="this.size=0;" formControlName="countryId" class="form-control"
+        [ngClass]="{ 'is-invalid': submitted && f.countryId.errors }">
+        <option value="" disabled>Choose your country</option>
+        <option *ngFor="let country of countryService.countries | async" [ngValue]="country.countryId">
+            {{country.countryName}}
+        </option>
+    </select>
+</div>
+    <div class="form-group">
+        <button [disabled]="loading" class="btn btn-primary">
+            <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+            Change 
+        </button>
+        <a routerLink="/login" class="btn btn-link text-light">Cancel</a>
+    </div>
+</form>
+</div>

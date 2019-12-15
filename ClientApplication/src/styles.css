@@ -1,0 +1,9 @@
+/* You can add global styles to this file, and also import other style files */
+body{
+    background-color: #D3D3D3;
+    font-family: Calibri;
+}
+
+html {
+    overflow-y: scroll;
+}

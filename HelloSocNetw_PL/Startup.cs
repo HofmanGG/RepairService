@@ -1,24 +1,17 @@
-﻿using System.Reflection;
-using System.Threading.Tasks;
-using AutoMapper;
-using FluentValidation.AspNetCore;
-using HelloSocNetw_BLL.Infrastructure;
-using HelloSocNetw_BLL.Infrastructure.MapperProfiles;
+﻿using HelloSocNetw_BLL.Entities;
 using HelloSocNetw_DAL;
-using HelloSocNetw_DAL.Entities;
-using HelloSocNetw_DAL.Infrastructure;
 using HelloSocNetw_DAL.Interfaces;
 using HelloSocNetw_PL.Infrastructure;
 using HelloSocNetw_PL.Infrastructure.MapperProfiles;
-using HelloSocNetw_PL.Validators;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using HelloSocNetw_PL.Infrastructure.Middlewares;
+using HelloSocNetw_PL.Infrastructure.StartupConfigurations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace HelloSocNetw_PL
 {
@@ -35,56 +28,21 @@ namespace HelloSocNetw_PL
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
-
-            services.ConfigureDALServices();
-            services.ConfigureBLLServices();
-            services.ConfigurePLServices();
-
-            services.AddAutoMapper(typeof(RegisterModelProfile),
-                typeof(UserInfoModelProfile),
-                typeof(UserInfoDTOProfile),
-                typeof(CountryDTOProfile),
-                typeof(CountryModelProfile));
-
-            services.Configure<ApiBehaviorOptions>(options =>
-            {
-                options.SuppressModelStateInvalidFilter = true;
-            });
-
-            services.AddAutoMapper(typeof(UserInfoModelProfile), typeof(CountryModelProfile));
-
-            var connectingString = Configuration.GetConnectionString("HelloDatabase");
-            services.AddDbContextPool<SocNetwContext>(options =>
-                options.UseLazyLoadingProxies()
-                    .UseSqlServer(connectingString)
-                    .EnableSensitiveDataLogging());
-
-            services.AddAuthentication(options => {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-            .AddJwtBearer(options =>
-            {
-                options.RequireHttpsMetadata = false;
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidIssuer = AuthJwtTokenOptions.Issuer,
-
-                    ValidateAudience = true,
-                    ValidAudience = AuthJwtTokenOptions.Audience,
-                    ValidateLifetime = true,
-
-                    IssuerSigningKey = AuthJwtTokenOptions.GetSecurityKey(),
-                    ValidateIssuerSigningKey = true
-                };
-            });
-            services.AddMvc().AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>())
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddConfiguredDependencies();
+            services.AddConfiguredDBContext(Configuration);
+            services.AddConfiguredAutomapper();
+            services.AddConfiguredAuthorization();
+            services.AddConfiguredAuthentication();
+            services.AddConfiguredControllers();
+            services.AddConfiguredSwagger();
+            services.AddConfiguredResponseCaching();
+            services.AddConfiguredLogging();
+            services.AddOptions();
+            services.Configure<EmailSettings>(Configuration.GetSection("EmailSettings"));
         }
-
+        
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env) 
         {
             if (env.IsDevelopment())
             {
@@ -96,25 +54,39 @@ namespace HelloSocNetw_PL
                 app.UseHsts();
             }
 
-            var serviceProvider = app.ApplicationServices;
-            using (var serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>()
-                        .CreateScope())
-            {
-                var unitOfWork = serviceScope.ServiceProvider.GetService<IUnitOfWork>();
-                AppDbInitializer.Seed(unitOfWork);
-            }
+            app.UseMiddleware(typeof(ErrorHandlingMiddleware));
+            app.UseCustomDatabaseSeeding();
+
+            app.UseHttpsRedirection();
+            app.UseDefaultFiles();
+
+            app.UseStaticFiles();
+
+            app.UseSerilogRequestLogging();
+
+            app.UseRouting();
+
+            app.UseResponseCaching();
 
             app.UseCors(x => x
                 .AllowAnyOrigin()
                 .AllowAnyMethod()
                 .AllowAnyHeader());
 
-            app.UseHttpsRedirection();
-            app.UseDefaultFiles();
-            app.UseStaticFiles();
-
             app.UseAuthentication();
-            app.UseMvc();
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API V1");
+                c.RoutePrefix = string.Empty;
+            });
         }
     }
 }

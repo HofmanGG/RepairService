@@ -1,0 +1,3 @@
+<select [ngModel]="item" (ngModelChange)="onSelectedItemChange($event)" onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()"  onblur="this.size=0;" class="form-control">
+    <option *ngFor="let item of items" [ngValue]="item">{{item}}</option>
+</select>

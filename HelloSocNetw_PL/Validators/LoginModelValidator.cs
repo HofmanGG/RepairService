@@ -7,9 +7,13 @@ namespace HelloSocNetw_PL.Validators
     {
         public LoginModelValidator()
         {
-            RuleFor(u => u.Email).EmailAddress();
+            RuleFor(u => u.Email)
+                .NotNull()
+                .EmailAddress();
 
-            RuleFor(u => u.Password).NotEmpty();
+            RuleFor(u => u.Password)
+                .NotNull()
+                .MinimumLength(6);
         }
     }
 }

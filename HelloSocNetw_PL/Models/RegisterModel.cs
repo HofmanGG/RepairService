@@ -1,4 +1,6 @@
-﻿namespace HelloSocNetw_PL.Models
+﻿using static HelloSocNetw_PL.Infrastructure.PLEnums;
+
+namespace HelloSocNetw_PL.Models
 {
     public class RegisterModel
     {
@@ -10,7 +12,7 @@
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
-        public string Gender { get; set; }
+        public PLGenderType Gender { get; set; }
 
         public int CountryId { get; set; }
 

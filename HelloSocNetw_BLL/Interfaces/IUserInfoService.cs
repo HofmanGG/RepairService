@@ -11,36 +11,22 @@ namespace HelloSocNetw_BLL.Interfaces
 {
     public interface IUserInfoService
     {
-        Task<UserInfo> SingleOrDefaultUserInfoAsync(Expression<Func<UserInfo, bool>> predicate);
+        Task<UserInfoDTO> GetUserInfoByUserInfoIdAsync(int id);
 
-        Task<UserInfoDTO> GetUserInfoByIdAsync(int id);
+        Task<UserInfoDTO> GetUserInfoByAppIdentityIdAsync(Guid appIdentityUserId);
 
         Task<IEnumerable<UserInfoDTO>> GetUsersInfoAsync(int toSkip, int toTake);
 
-        Task<int> GetCountOfUsersInfoAsync();
+        Task<int> GetUserInfoIdByEmailAsync(string email);
 
-        IQueryable<UserInfo> FindUsersInfo(Expression<Func<UserInfo, bool>> predicate);
+        Task<int> GetCountOfUsersInfoAsync();
 
         Task AddUserInfoAsync(UserInfoDTO userInfoDto);
 
-        Task<int> GetCountOfFriendsByUserIdAsync(int id);
+        Task<bool> UpdateUserInfoAsync(UserInfoDTO newUserInfoDto);
 
-        Task<int> GetCountOfSubscribersByUserIdAsync(int id);
+        Task<bool> DeleteUserInfoByUserIdAsync(int userInfoId);
 
-        Task AddSubscriberByUserIdAbdSubIdAsync(int userId, int subId);
-
-        Task AddFriendByUserIdAndSubIdAsync(int userId, int subId);
-
-        Task DeleteUserInfoByUserIdAsync(int userId);
-
-        Task<IEnumerable<UserInfoDTO>> GetFriendsByUserIdAsync(int userId, int toTake);
-
-        Task<IEnumerable<UserInfoDTO>> GetSubsByUserIdAsync(int userId, int toTake);
-
-        Task UpdateUserInfoAsync(UserInfoDTO userInfoDto);
-
-        Task DeleteFriendshipByUserIdAndFriendIdAsync(int userId, int friendId);
-
-        Task DeleteSubscriptionByUserIdAndSubIdAsync(int userId, int subId);
+        Task<bool> UserInfoExistsAsync(int userInfoId);
     }
 }

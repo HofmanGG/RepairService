@@ -9,12 +9,9 @@ namespace HelloSocNetw_DAL.Interfaces
     public interface IUnitOfWork : IDisposable
     {
         IUserInfoRepository UsersInfo { get; }
+        IRepairRequestRepository RepairRequests { get; }
         ICountryRepository Countries { get; }
-        IPictureRepository Pictures { get; }
 
-        UserManager<AppIdentityUser> UserManager { get; }
-        RoleManager<AppUserRole> RoleManager { get; }
-
-        Task SaveChangesAsync();
+        Task<int> SaveChangesAsync();
     }
 }

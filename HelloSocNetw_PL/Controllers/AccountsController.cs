@@ -1,99 +1,266 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
-using System.Web.Http.Results;
 using AutoMapper;
 using BLL.ModelsDTO;
 using HelloSocNetw_BLL.Interfaces;
+using HelloSocNetw_PL.Infrastructure;
 using HelloSocNetw_PL.Models;
+using HelloSocNetw_PL.Models.UserInfoModels;
 using HelloSocNetw_PL.Validators;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using static HelloSocNetw_PL.Infrastructure.ControllerExtensions;
+using Microsoft.Extensions.Logging;
+using static HelloSocNetw_PL.Infrastructure.ControllerExtension;
 
 namespace PL.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController] 
+    [ApiController]
+    [ValidateModel]
     [AllowAnonymous]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public class AccountsController : ControllerBase
     {
-        private readonly IIdentityUserService _userService;
-        private readonly IMapper _mapper;
+        private readonly IIdentityUserService _identitySvc;
+        private readonly IMapper _mpr;
+        private readonly IEmailSender _emailSender;
+        private readonly ILogger _lgr;
 
-        public AccountsController(IIdentityUserService userService, IMapper mapper)
+        public AccountsController(IIdentityUserService identityService, IMapper mapper, IEmailSender emailSender, ILogger<AccountsController> logger)
         {
-            _userService = userService;
-            _mapper = mapper;
+            _identitySvc = identityService;
+            _mpr = mapper;
+            _emailSender = emailSender;
+            _lgr = logger;
         }
 
-        // POST: api/accounts/signup
-        [Route("signup")]
-        [HttpPost]
+        /// <summary>
+        /// Creates an account
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     POST /signup
+        ///     {
+        ///        "email": "example@gmail.com",
+        ///        "password": "p4ssW0Rd",
+        ///        "confirmPassword": "p4ssW0Rd", 
+        ///        "firstName": "Jason",
+        ///        "lastName": "Smith",
+        ///        "gender": "Male",
+        ///        "countryId": 13,
+        ///        "dayOfBirth": 11,
+        ///        "monthOfBirth": 5,
+        ///        "yearOfBirth": 2000
+        ///     }
+        ///
+        /// </remarks>
+        /// <response code="204">If an account successfully created</response>
+        /// <response code="400">If registerModel is not valid</response>
+        /// <response code="409">If such email already exists</response>
+        /// <response code="500">If an exception on server is thrown</response>
+        [HttpPost("signup")]
+        [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(409)]
         public async Task<IActionResult> SignUp(RegisterModel registerModel)
         {
-            var regValidator = new RegisterModelValidator();
-            if (regValidator.Validate(registerModel).IsValid)
+            var doesUserWithSuchEmailAlreadyExists = await _identitySvc.UserWithSuchEmailAlreadyExistsAsync(registerModel.Email);
+            if (doesUserWithSuchEmailAlreadyExists)
             {
-                if (!await _userService.UserWithSuchEmailAlreadyExistsAsync(registerModel.Email))
-                {
-                    var userInfoDto = _mapper.Map<UserInfoDTO>(registerModel);
-                    await _userService.CreateAccountAsync(userInfoDto, registerModel.Email, registerModel.Password);
-                    return Ok();
-                }
+                _lgr.LogInformation("SignUp() CONFLICT, user with {email} already exists", registerModel.Email);
                 return Conflict();
             }
-            return UnprocessableEntity();
-        }
 
-        // POST: api/accounts/signin
-        [Route("signin")]
-        [HttpPost]
-        [Produces("application/json")]
-        public async Task<IActionResult> SignIn(LoginModel loginModel)
-        {
-            var loginValidator = new LoginModelValidator();
-            if (loginValidator.Validate(loginModel).IsValid)
+            var userInfoDto = _mpr.Map<UserInfoDTO>(registerModel);
+
+            var isAccountSuccessfulyCreated = await _identitySvc.CreateAccountAsync(userInfoDto, registerModel.Email, registerModel.Email, registerModel.Password);
+            if (!isAccountSuccessfulyCreated)
             {
-                var userInfoDto = await _userService.Authenticate(loginModel.Email, loginModel.Password);
-                if(userInfoDto != null)
-                {
-                    var userInfoModel = _mapper.Map<UserInfoModel>(userInfoDto);
-                    var token = await _userService.GetJwtTokenAsync(loginModel.Email);
+                _lgr.LogWarning("SignUp() BAR REQUEST");
+                return BadRequest();
+            } 
 
-                    userInfoModel.Token = token;
+            _lgr.LogInformation(LoggingEvents.InsertItem, "Account {email} is successfully created", registerModel.Email);
 
-                    return Ok(userInfoModel);
-                }
-                return UnprocessableEntity();
-            }
-            return UnprocessableEntity();
+            var code = await _identitySvc.GenerateEmailConfirmationTokenAsyncByEmail(registerModel.Email);
+            var callbackUrl = Url.Action(
+                "ConfirmEmail",
+                "Accounts",
+                new { registerModel.Email, code },
+                protocol: HttpContext.Request.Scheme);
+
+            _lgr.LogInformation("Sending Email Confirmation Message to {email}", registerModel.Email);
+
+            await _emailSender.SendEmailAsync("samko.2000@ukr.net", "Confirm your account",
+                $"Подтвердите регистрацию, перейдя по ссылке: <a href='{callbackUrl}'>link</a>");
+
+            return NoContent();
         }
 
-        [HttpPost]
-        [Authorize]
-        [Route("changeinfo")]
-        [Produces("application/json")]
-        public async Task<IActionResult> ChangeUserInfoAsync(UserInfoModel userInfoModel)
+        /// <summary>
+        /// Login
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     POST /signin
+        ///     {
+        ///        "email": "example@gmail.com",
+        ///        "password": "p4ssW0Rd"
+        ///     }
+        ///
+        /// </remarks>
+        /// <response code="200">Returns token and accounts info</response>
+        /// <response code="400">If loginModel is not valid</response>
+        /// <response code="401">If wrong password or email</response>
+        /// <response code="403">If email is not confirmed</response>
+        /// <response code="404">If account is bloked</response>
+        /// <response code="500">If an exception on server is thrown</response>
+        [HttpPost("signin")]
+        [ProducesResponseType(200), ProducesResponseType(400), ProducesResponseType(401), ProducesResponseType(403), ProducesResponseType(404)]
+        public async Task<ActionResult<UserInfoModel>> SignIn(LoginModel loginModel)
         {
-            var userId = this.GetUserId();
+            var appIdentityUserDto = await _identitySvc.Authenticate(loginModel.Email, loginModel.Password);
+            if (appIdentityUserDto == null)
+            {
+                _lgr.LogInformation("SignIn() UNAUTHORIZED, Wrong Credentials");
+                return Unauthorized();
+            }
 
-            var userInfoDto = _mapper.Map<UserInfoDTO>(userInfoModel);
-            userInfoDto.UserInfoId = userId;
+            var isEmailConfirmed = await _identitySvc.IsEmailConfirmedAsync(appIdentityUserDto);
+            if (!isEmailConfirmed)
+            {
+                _lgr.LogInformation("SignIn() FORBIDDEN, email {email} is not confirmed", loginModel.Email);
+                return Forbid();
+            }
 
-            await _userService.UpdateUserInfoAsync(userInfoDto);
-            var changedUserInfoDto = await _userService.GetUserInfoByIdAsync(userId);
+            var isUserLockedOut = await _identitySvc.IsLockedOutByEmailAsync(appIdentityUserDto);
+            if (isUserLockedOut)
+            {
+                _lgr.LogInformation("SignIn() NOT FOUND, the user {email} is locked out", loginModel.Email);
+                return NotFound();
+            }
+             
+            _lgr.LogInformation("User {email} is successfully logged in", loginModel.Email);
 
-            var changedUserInfoModel = _mapper.Map<UserInfoModel>(changedUserInfoDto);
+            var userInfoDto = await _identitySvc.GetUserInfoWithTokenAsync(appIdentityUserDto);
+            var userInfoModel = _mpr.Map<UserInfoModel>(userInfoDto);
 
-            var email = await _userService.GetUserEmailByIdAsync(userId);
-            var token = await _userService.GetJwtTokenAsync(email);
-            changedUserInfoModel.Token = token;
+            return userInfoModel;
+        }
 
-            return Ok(changedUserInfoModel);
+        //не используется, заменен на UserController.ChangeUserInfo
+        /// <summary>
+        /// Changes accounts info
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     POST /changeinfo
+        ///     {
+        ///        "firstName": "Jason",
+        ///        "lastName": "Smith",
+        ///        "gender": "Male",
+        ///        "countryId": 13,
+        ///        "dayOfBirth": 11,
+        ///        "monthOfBirth": 5,
+        ///        "yearOfBirth": 2000
+        ///     }
+        ///
+        /// </remarks>
+        /// <response code="200">Returnes changed accounts info</response>
+        /// <response code="400">If userInfoModel is not valid</response>
+        /// <response code="500">If an exception on server is thrown</response>
+        [HttpPost("changeinfo")]
+        [Authorize]
+        [ProducesResponseType(200), ProducesResponseType(400)]
+        public async Task<ActionResult<UserInfoModel>> ChangeUserInfo(UpdateUserInfoModel userInfoModel)
+        {
+                var authorizedUserId = this.GetUserId();
+
+                var userInfoDto = _mpr.Map<UserInfoDTO>(userInfoModel);
+                userInfoDto.AppIdentityUserId = authorizedUserId;
+                await _identitySvc.UpdateUserInfoAsync(userInfoDto);
+
+                var changedUserInfoDto = await _identitySvc.GetUserInfoByAppIdentityIdAsync(authorizedUserId);
+                var changedUserInfoModel = _mpr.Map<UserInfoModel>(changedUserInfoDto);
+
+                return changedUserInfoModel;
+        }
+
+        /// <summary>
+        /// Deletes account
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /confirmemail
+        ///     {
+        ///        "email": "example@gmail.com",
+        ///        "code": "alotofsymbols.............."
+        ///     }
+        ///
+        /// </remarks>
+        /// <response code="302">Redirectes to login page</response>
+        /// <response code="500">If an exception on server is thrown</response>'
+        /// 
+        [HttpDelete("{appIdentityUserId}")]
+        [Authorize(Roles = "Manager, Admin")]
+        [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(404)]
+        public async Task<IActionResult> DeleteAccount(Guid appIdentityUserId)
+        {
+            var appIdentityUser = await _identitySvc.FindByIdAsync(appIdentityUserId);
+            if (appIdentityUser == null)
+            {
+                _lgr.LogWarning(LoggingEvents.DeleteItemNotFound, "DeleteAccount({appIdentityUserId}) NOT FOUND", appIdentityUserId);
+                return NotFound();
+            }
+            
+            var isAccountSuccessfullyDeleted = await _identitySvc.DeleteAccountByAppIdentityUserIdAsync(appIdentityUserId);
+            if (isAccountSuccessfullyDeleted)
+            {
+                _lgr.LogInformation(LoggingEvents.DeleteItem, "Account {appIdentityUserId} is successfully deleted", appIdentityUserId);
+                return NoContent();
+            }
+            else
+            {
+                _lgr.LogWarning(LoggingEvents.DeleteItemBadRequest, "DeleteAccount({appIdentityUserId}) BAD REQUEST", appIdentityUserId);
+                return BadRequest();
+            }
+        }
+
+        /// <summary>
+        /// Confirms Email
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /confirmemail
+        ///     {
+        ///        "email": "example@gmail.com",
+        ///        "code": "alotofsymbols.............."
+        ///     }
+        ///
+        /// </remarks>
+        /// <response code="302">Redirectes to login page</response>
+        /// <response code="500">If an exception on server is thrown</response>'
+        ///
+        [HttpGet("confirmemail")]
+        [ProducesResponseType(302), ProducesResponseType(400)]
+        public async Task<IActionResult> ConfirmEmail(string email, string code)
+        {
+            var isEmailSuccessfullyConfirmed = await _identitySvc.ConfirmEmailAsync(email, code);
+            if (isEmailSuccessfullyConfirmed)
+            {
+                _lgr.LogInformation("Account {email} is successfully confirmed", email);
+                return Redirect("http://localhost:4200/login");
+            }
+            else
+            {
+                _lgr.LogWarning("ConfirmEmail({email}, {code}) BAD REQUEST", email, code);
+                return BadRequest();
+            }
         }
     }
 }
