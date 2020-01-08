@@ -1,5 +1,6 @@
-<div class="col-md-6 offset-md-3 padding">
-<h2>Change Account Information</h2>
+<div class="col-md-6 offset-md-3">
+    <div class="padding">
+    <h2>Change Account Information</h2>
 <form [formGroup]="changeInfoForm" (ngSubmit)="onSubmit()">
 
   <div class="form-row">
@@ -113,4 +114,6 @@
         <a routerLink="/login" class="btn btn-link text-light">Cancel</a>
     </div>
 </form>
+</div>
+<div *ngIf="sc.badRequest" class="alert alert-danger" role="alert">Not Valid Model</div>
 </div>

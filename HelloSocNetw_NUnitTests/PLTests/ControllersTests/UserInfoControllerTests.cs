@@ -19,14 +19,14 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
         {
             //arrrange
             var userInfoServiceMock = new Mock<IUserInfoService>();
-            userInfoServiceMock.Setup(rep => rep.GetUserInfoByIdAsync(It.IsAny<int>()))
+            userInfoServiceMock.Setup(rep => rep.GetUserInfoByUserInfoIdAsync(It.IsAny<int>()))
                 .ReturnsAsync((UserInfoDTO)null);
 
             var mapperMock = new Mock<IMapper>();
             mapperMock.Setup(m => m.Map<UserInfoModel>(It.IsAny<UserInfoDTO>()))
                 .Returns<UserInfoDTO>(u => new UserInfoModel());
 
-            var controller = new UsersController(userInfoServiceMock.Object, mapperMock.Object);
+            var controller = new UsersController(userInfoServiceMock.Object, null, mapperMock.Object, null);
 
             //act
             var response = await controller.GetUser(123123123);
@@ -40,14 +40,14 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
         {
             //arrange
             var userInfoServiceMock = new Mock<IUserInfoService>();
-            userInfoServiceMock.Setup(svc => svc.GetUserInfoByIdAsync(It.IsAny<int>()))
+            userInfoServiceMock.Setup(svc => svc.GetUserInfoByUserInfoIdAsync(It.IsAny<int>()))
                 .ReturnsAsync(new UserInfoDTO());
 
             var mapperMock = new Mock<IMapper>();
             mapperMock.Setup(m => m.Map<UserInfoModel>(It.IsAny<UserInfoDTO>()))
                 .Returns<UserInfoDTO>(u => new UserInfoModel());
 
-            var controller = new UsersController(userInfoServiceMock.Object, mapperMock.Object);
+            var controller = new UsersController(userInfoServiceMock.Object, null, mapperMock.Object, null);
 
             //act
             var response = await controller.GetUser(123123123);
@@ -61,16 +61,16 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
         {
             //arrange
             var userInfoServiceMock = new Mock<IUserInfoService>();
-            userInfoServiceMock.Setup(svc => svc.GetUserInfoByIdAsync(It.IsAny<int>()))
+            userInfoServiceMock.Setup(svc => svc.GetUserInfoByUserInfoIdAsync(It.IsAny<int>()))
                 .ReturnsAsync((UserInfoDTO)null);
             userInfoServiceMock.Setup(svc => svc.DeleteUserInfoByUserIdAsync(It.IsAny<int>()))
-                .ReturnsAsync(true);
+                .Verifiable();
 
             var mapperMock = new Mock<IMapper>();
             mapperMock.Setup(m => m.Map<UserInfoModel>(It.IsAny<UserInfoDTO>()))
                 .Returns<UserInfoDTO>(u => new UserInfoModel());
 
-            var controller = new UsersController(userInfoServiceMock.Object, mapperMock.Object);
+            var controller = new UsersController(userInfoServiceMock.Object, null, mapperMock.Object, null);
 
             //act
             var responseResult = await controller.DeleteUser(123123123);
@@ -84,16 +84,16 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
         {
             //arrange
             var userInfoServiceMock = new Mock<IUserInfoService>();
-            userInfoServiceMock.Setup(svc => svc.GetUserInfoByIdAsync(It.IsAny<int>()))
+            userInfoServiceMock.Setup(svc => svc.GetUserInfoByUserInfoIdAsync(It.IsAny<int>()))
                 .ReturnsAsync(new UserInfoDTO());
             userInfoServiceMock.Setup(svc => svc.DeleteUserInfoByUserIdAsync(It.IsAny<int>()))
-                .ReturnsAsync(false);
+                .Verifiable();
 
             var mapperMock = new Mock<IMapper>();
             mapperMock.Setup(m => m.Map<UserInfoModel>(It.IsAny<UserInfoDTO>()))
                 .Returns<UserInfoDTO>(u => new UserInfoModel());
 
-            var controller = new UsersController(userInfoServiceMock.Object, mapperMock.Object);
+            var controller = new UsersController(userInfoServiceMock.Object, null, mapperMock.Object, null);
 
             //act
             var responseResult = await controller.DeleteUser(123123123);
@@ -107,7 +107,7 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
         {
             //arrange
             var userInfoServiceMock = new Mock<IUserInfoService>();
-            userInfoServiceMock.Setup(svc => svc.GetUserInfoByIdAsync(It.IsAny<int>()))
+            userInfoServiceMock.Setup(svc => svc.GetUserInfoByUserInfoIdAsync(It.IsAny<int>()))
                 .ReturnsAsync(new UserInfoDTO());
             userInfoServiceMock.Setup(svc => svc.DeleteUserInfoByUserIdAsync(It.IsAny<int>()))
                 .ThrowsAsync(new Exception());
@@ -116,7 +116,7 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
             mapperMock.Setup(m => m.Map<UserInfoModel>(It.IsAny<UserInfoDTO>()))
                 .Returns<UserInfoDTO>(u => new UserInfoModel());
 
-            var controller = new UsersController(userInfoServiceMock.Object, mapperMock.Object);
+            var controller = new UsersController(userInfoServiceMock.Object, null, mapperMock.Object, null);
 
             //act
             var responseResult = await controller.DeleteUser(123123123);

@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using HelloSocNetw_BLL.EntitiesDTO;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_PL.Infrastructure;
+using HelloSocNetw_PL.Infrastructure.Interfaces;
 using HelloSocNetw_PL.Models;
 using HelloSocNetw_PL.Models.RepairRequestModels;
 using HelloSocNetw_PL.Validators;
@@ -16,22 +18,24 @@ using Microsoft.Extensions.Logging;
 namespace HelloSocNetw_PL.Controllers
 {
     [Route("/api/users/{userId}/repairrequests")]
-    [ApiController]
-    [ValidateModel]
     [Authorize(Roles = "Manager, Admin")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public class RepairRequestsController : Controller
+    public class RepairRequestsController : ApiController
     {
         private readonly IRepairRequestsService _repReqSvc;
-        private readonly IMapper _mpr;
         private readonly ILogger _lgr;
+        private readonly IMapper _mpr;
+        private readonly ICurrentUserService _curUserSvc;
 
-        public RepairRequestsController(IRepairRequestsService repairRequestsService, IMapper mapper, ILogger<RepairRequestsController> logger)
+        public RepairRequestsController(
+            IRepairRequestsService repairRequestsService, 
+            ILogger<RepairRequestsController> logger,
+            IMapper mapper,
+            ICurrentUserService currentUserService)
         {
             _repReqSvc = repairRequestsService;
-            _mpr = mapper;
             _lgr = logger;
+            _mpr = mapper;
+            _curUserSvc = currentUserService;
         }
 
         /// <summary>
@@ -52,8 +56,6 @@ namespace HelloSocNetw_PL.Controllers
         [ProducesResponseType(200)]
         public async Task<ActionResult<IEnumerable<RepairRequestModel>>> GetRepairRequestsByUserInfoIdAsync(int userId)
         {
-            _lgr.LogInformation(LoggingEvents.ListItems, "Getting All Repair Requests of user {userId}", userId);
-
             if (!User.Identity.IsAuthenticated)
                 return Forbid();
             
@@ -64,7 +66,7 @@ namespace HelloSocNetw_PL.Controllers
             }
             else
             {
-                var identityUserId = this.GetUserId();
+                var identityUserId = _curUserSvc.UserId;
                 repairRequestsDto = await _repReqSvc.GetRepairRequestsByUserInfoIdAndAppIdentityUserIdAsync(userId, identityUserId);
             }
 
@@ -89,8 +91,6 @@ namespace HelloSocNetw_PL.Controllers
         [ProducesResponseType(200)]
         public async Task<ActionResult<int>> GetCountOfRepairRequestsByUserInfoIdAsync(int userId)
         {
-            _lgr.LogInformation(LoggingEvents.ListItems, "Getting Count of all Repair Requests of user {userId}", userId);
-
             var count = await _repReqSvc.GetCountOfRepairRequestsByUserInfoIdAsync(userId);
             return count;
         }
@@ -119,17 +119,9 @@ namespace HelloSocNetw_PL.Controllers
             var repairRequestDto = _mpr.Map<RepairRequestDTO>(repairRequestModel);
             repairRequestDto.UserInfoId = userId;
 
-            var successfullyAdded = await _repReqSvc.AddRepairRequestAsync(repairRequestDto);
-            if (successfullyAdded)
-            {
-                _lgr.LogInformation(LoggingEvents.InsertItem, "Repair Request successfully added for user {userId}", userId);
-                return NoContent();
-            }
-            else
-            {
-                _lgr.LogWarning(LoggingEvents.InsertItemBadRequest, "AddRepairRequestAsync{userId} BAD REQUEST", userId);
-                return BadRequest();
-            }
+            await _repReqSvc.AddRepairRequestAsync(repairRequestDto);
+
+            return NoContent();
         }
 
         /// <summary>
@@ -153,31 +145,18 @@ namespace HelloSocNetw_PL.Controllers
         /// <response code="500">If an exception on server is thrown</response>
         [HttpPut("{repairRequestId}")]
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(404)]
-        public async Task<IActionResult> UpdateRepairRequestAsync(int userId, int repairRequestId, UpdateRepairRequestModel repairRequestModel)
+        public async Task<IActionResult> UpdateRepairRequestAsync(int userId, int repairRequestId, UpdateRepairRequestModel repairRequestModel) 
         {
             if (repairRequestId != repairRequestModel.RepairRequestId)
                 return BadRequest();
 
-            var repReqToUpdate = await _repReqSvc.GetRepairRequestByRepairRequestIdAndUserInfoIdAsync(repairRequestId, userId);
-            if (repReqToUpdate == null)
-            {
-                _lgr.LogWarning(LoggingEvents.UpdateItemNotFound, "UpdateRepairRequestAsync({userId}, {repairRequestId} NOT FOUND", userId, repairRequestId);
-                return NotFound();
-            }
-
             var repairRequestDto = _mpr.Map<RepairRequestDTO>(repairRequestModel);
+            repairRequestDto.UserInfoId = userId;
+            repairRequestDto.RepairRequestId = repairRequestId;
 
-            var successfullyUpdated = await _repReqSvc.UpdateRepairRequestAsync(repairRequestDto);
-            if (successfullyUpdated)
-            {
-                _lgr.LogInformation(LoggingEvents.UpdateItem, "Repair Request {repairRequestId} successfully updated for user {userId}", repairRequestId, userId);
-                return NoContent();
-            }
-            else
-            {
-                _lgr.LogWarning(LoggingEvents.UpdateItemBadRequest, "UpdateRepairRequestAsync({userId}, {repairRequestId} BAD REQUEST", repairRequestId, userId);
-                return BadRequest();
-            }
+            await _repReqSvc.UpdateRepairRequestAsync(repairRequestDto);
+
+            return NoContent();
         }
 
         /// <summary>
@@ -199,23 +178,9 @@ namespace HelloSocNetw_PL.Controllers
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(404)]
         public async Task<IActionResult> DeleteRepairRequestByIdAsync(int userId, int repairRequestId)
         {
-            var repairRequestExists = await _repReqSvc.RepairRequestWithSuchRepairRequestIdAndUserInfoIdExistsAsync(repairRequestId, userId);
-            if (!repairRequestExists)
-            {
-                _lgr.LogWarning(LoggingEvents.DeleteItemNotFound, "DeleteRepairRequestByIdAsync({userId}, {repairRequestId}) NOT FOUND", userId, repairRequestId);
-                return NotFound();
-            }
+            await _repReqSvc.DeleteRepairRequestByRepairRequestIdAsync(repairRequestId);
 
-            if (await _repReqSvc.DeleteRepairRequestByRepairRequestIdAsync(repairRequestId))
-            {
-                _lgr.LogInformation(LoggingEvents.DeleteItem, "Repair Request {repairRequestId} of user {userId} is successfully deleted", userId, repairRequestId);
-                return NoContent();
-            }
-            else
-            {
-                _lgr.LogWarning(LoggingEvents.DeleteItemBadRequest, "DeleteRepairRequestByIdAsync({userId}, {repairRequestId}) BAD REQUEST", userId, repairRequestId);
-                return BadRequest();
-            }
+            return NoContent();
         }
     }
 }

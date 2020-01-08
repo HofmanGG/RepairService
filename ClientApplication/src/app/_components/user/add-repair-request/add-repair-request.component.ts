@@ -35,7 +35,7 @@ export class AddRepairRequestComponent implements OnInit {
     this.userInfoIdParam = this.route.parent.snapshot.params['id'];
 
     this.repairRequestForm = this.fb.group({
-          productName: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(40)]],
+          productName: ['', [Validators.required, /*Validators.minLength(4),*/ Validators.maxLength(40)]],
           comment: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(100)]],
 
           repairStatus: ['', [Validators.required]]

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace HelloSocNetw_PL.Infrastructure
 {
+    /*
     public class LoggingEvents
     {
         public const int GenerateItems = 1000;
@@ -35,4 +36,5 @@ namespace HelloSocNetw_PL.Infrastructure
         public const int UpdateItemBadRequest = 4044;
         public const int DeleteItemBadRequest = 4045;
     }
+    */
 }

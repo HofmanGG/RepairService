@@ -4,6 +4,7 @@ using AutoMapper;
 using BLL.ModelsDTO;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_PL.Infrastructure;
+using HelloSocNetw_PL.Infrastructure.Interfaces;
 using HelloSocNetw_PL.Models;
 using HelloSocNetw_PL.Models.UserInfoModels;
 using HelloSocNetw_PL.Validators;
@@ -11,29 +12,30 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using static HelloSocNetw_PL.Infrastructure.ControllerExtension;
 
 namespace PL.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    [ValidateModel]
     [AllowAnonymous]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public class AccountsController : ControllerBase
+    public class AccountsController : ApiController
     {
         private readonly IIdentityUserService _identitySvc;
-        private readonly IMapper _mpr;
         private readonly IEmailSender _emailSender;
         private readonly ILogger _lgr;
+        private readonly IMapper _mpr;
+        private readonly ICurrentUserService _curUserSvc;
 
-        public AccountsController(IIdentityUserService identityService, IMapper mapper, IEmailSender emailSender, ILogger<AccountsController> logger)
+        public AccountsController(
+            IIdentityUserService identityService, 
+            IEmailSender emailSender, 
+            ILogger<AccountsController> logger, 
+            IMapper mapper,
+            ICurrentUserService currentUserService)
         {
             _identitySvc = identityService;
-            _mpr = mapper;
             _emailSender = emailSender;
             _lgr = logger;
+            _mpr = mapper;
+            _curUserSvc = currentUserService;
         }
 
         /// <summary>
@@ -65,23 +67,8 @@ namespace PL.Controllers
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(409)]
         public async Task<IActionResult> SignUp(RegisterModel registerModel)
         {
-            var doesUserWithSuchEmailAlreadyExists = await _identitySvc.UserWithSuchEmailAlreadyExistsAsync(registerModel.Email);
-            if (doesUserWithSuchEmailAlreadyExists)
-            {
-                _lgr.LogInformation("SignUp() CONFLICT, user with {email} already exists", registerModel.Email);
-                return Conflict();
-            }
-
             var userInfoDto = _mpr.Map<UserInfoDTO>(registerModel);
-
-            var isAccountSuccessfulyCreated = await _identitySvc.CreateAccountAsync(userInfoDto, registerModel.Email, registerModel.Email, registerModel.Password);
-            if (!isAccountSuccessfulyCreated)
-            {
-                _lgr.LogWarning("SignUp() BAR REQUEST");
-                return BadRequest();
-            } 
-
-            _lgr.LogInformation(LoggingEvents.InsertItem, "Account {email} is successfully created", registerModel.Email);
+            await _identitySvc.CreateAccountAsync(userInfoDto, registerModel.Email, registerModel.Email, registerModel.Password);
 
             var code = await _identitySvc.GenerateEmailConfirmationTokenAsyncByEmail(registerModel.Email);
             var callbackUrl = Url.Action(
@@ -89,8 +76,6 @@ namespace PL.Controllers
                 "Accounts",
                 new { registerModel.Email, code },
                 protocol: HttpContext.Request.Scheme);
-
-            _lgr.LogInformation("Sending Email Confirmation Message to {email}", registerModel.Email);
 
             await _emailSender.SendEmailAsync("samko.2000@ukr.net", "Confirm your account",
                 $"Подтвердите регистрацию, перейдя по ссылке: <a href='{callbackUrl}'>link</a>");
@@ -123,26 +108,15 @@ namespace PL.Controllers
         {
             var appIdentityUserDto = await _identitySvc.Authenticate(loginModel.Email, loginModel.Password);
             if (appIdentityUserDto == null)
-            {
-                _lgr.LogInformation("SignIn() UNAUTHORIZED, Wrong Credentials");
                 return Unauthorized();
-            }
 
             var isEmailConfirmed = await _identitySvc.IsEmailConfirmedAsync(appIdentityUserDto);
             if (!isEmailConfirmed)
-            {
-                _lgr.LogInformation("SignIn() FORBIDDEN, email {email} is not confirmed", loginModel.Email);
                 return Forbid();
-            }
 
             var isUserLockedOut = await _identitySvc.IsLockedOutByEmailAsync(appIdentityUserDto);
             if (isUserLockedOut)
-            {
-                _lgr.LogInformation("SignIn() NOT FOUND, the user {email} is locked out", loginModel.Email);
                 return NotFound();
-            }
-             
-            _lgr.LogInformation("User {email} is successfully logged in", loginModel.Email);
 
             var userInfoDto = await _identitySvc.GetUserInfoWithTokenAsync(appIdentityUserDto);
             var userInfoModel = _mpr.Map<UserInfoModel>(userInfoDto);
@@ -177,16 +151,16 @@ namespace PL.Controllers
         [ProducesResponseType(200), ProducesResponseType(400)]
         public async Task<ActionResult<UserInfoModel>> ChangeUserInfo(UpdateUserInfoModel userInfoModel)
         {
-                var authorizedUserId = this.GetUserId();
+            var authorizedUserId = _curUserSvc.UserId;
 
-                var userInfoDto = _mpr.Map<UserInfoDTO>(userInfoModel);
-                userInfoDto.AppIdentityUserId = authorizedUserId;
-                await _identitySvc.UpdateUserInfoAsync(userInfoDto);
+            var userInfoDto = _mpr.Map<UserInfoDTO>(userInfoModel);
+            userInfoDto.AppIdentityUserId = authorizedUserId;
+            await _identitySvc.UpdateUserInfoAsync(userInfoDto);
 
-                var changedUserInfoDto = await _identitySvc.GetUserInfoByAppIdentityIdAsync(authorizedUserId);
-                var changedUserInfoModel = _mpr.Map<UserInfoModel>(changedUserInfoDto);
+            var changedUserInfoDto = await _identitySvc.GetUserInfoByAppIdentityIdAsync(authorizedUserId);
+            var changedUserInfoModel = _mpr.Map<UserInfoModel>(changedUserInfoDto);
 
-                return changedUserInfoModel;
+            return changedUserInfoModel;
         }
 
         /// <summary>
@@ -210,24 +184,9 @@ namespace PL.Controllers
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(404)]
         public async Task<IActionResult> DeleteAccount(Guid appIdentityUserId)
         {
-            var appIdentityUser = await _identitySvc.FindByIdAsync(appIdentityUserId);
-            if (appIdentityUser == null)
-            {
-                _lgr.LogWarning(LoggingEvents.DeleteItemNotFound, "DeleteAccount({appIdentityUserId}) NOT FOUND", appIdentityUserId);
-                return NotFound();
-            }
-            
-            var isAccountSuccessfullyDeleted = await _identitySvc.DeleteAccountByAppIdentityUserIdAsync(appIdentityUserId);
-            if (isAccountSuccessfullyDeleted)
-            {
-                _lgr.LogInformation(LoggingEvents.DeleteItem, "Account {appIdentityUserId} is successfully deleted", appIdentityUserId);
-                return NoContent();
-            }
-            else
-            {
-                _lgr.LogWarning(LoggingEvents.DeleteItemBadRequest, "DeleteAccount({appIdentityUserId}) BAD REQUEST", appIdentityUserId);
-                return BadRequest();
-            }
+            await _identitySvc.DeleteAccountByAppIdentityUserIdAsync(appIdentityUserId);
+
+            return NoContent();
         }
 
         /// <summary>
@@ -252,15 +211,9 @@ namespace PL.Controllers
         {
             var isEmailSuccessfullyConfirmed = await _identitySvc.ConfirmEmailAsync(email, code);
             if (isEmailSuccessfullyConfirmed)
-            {
-                _lgr.LogInformation("Account {email} is successfully confirmed", email);
                 return Redirect("http://localhost:4200/login");
-            }
             else
-            {
-                _lgr.LogWarning("ConfirmEmail({email}, {code}) BAD REQUEST", email, code);
                 return BadRequest();
-            }
         }
     }
 }

@@ -18,11 +18,11 @@ namespace HelloSocNetw_BLL.Interfaces
 
         Task<int> GetCountOfRepairRequestsByUserInfoIdAsync(int id);
 
-        Task<bool> AddRepairRequestAsync(RepairRequestDTO repairRequest);
+        Task AddRepairRequestAsync(RepairRequestDTO repairRequest);
 
-        Task<bool> UpdateRepairRequestAsync(RepairRequestDTO newRepairRequestInfoDto);
+        Task UpdateRepairRequestAsync(RepairRequestDTO newRepairRequestInfoDto);
 
-        Task<bool> DeleteRepairRequestByRepairRequestIdAsync(int repairRequestId);
+        Task DeleteRepairRequestByRepairRequestIdAsync(int repairRequestId);
 
         Task<bool> RepairRequestExistsAsync(int id);
 

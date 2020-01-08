@@ -9,10 +9,13 @@ using AutoMapper;
 using BLL.ModelsDTO;
 using HelloSocNetw_BLL.EntitiesDTO;
 using HelloSocNetw_BLL.Infrastructure;
+using HelloSocNetw_BLL.Infrastructure.Exceptions;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_DAL.Entities;
+using HelloSocNetw_DAL.Infrastructure.Exceptions;
 using HelloSocNetw_DAL.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -38,25 +41,29 @@ namespace HelloSocNetw_BLL.Services
             return await _identityUow.UserManager.FindByEmailAsync(email) != null;
         }
 
-        public async Task<bool> CreateAccountAsync(UserInfoDTO userInfoDto, string email, string userName, string password)
+        public async Task CreateAccountAsync(UserInfoDTO userInfoDto, string email, string userName, string password)
         {
+            var doesAccountWithSuchEmailExists = await _identityUow.UserManager.Users.AnyAsync(u => u.Email == email);
+            if (doesAccountWithSuchEmailExists)
+                throw new ConflictException(nameof(AppIdentityUser), email);
+
             var appIdentityUser = new AppIdentityUser() {Email = email, UserName = userName };
-                
             var createOperationResult = await _identityUow.UserManager.CreateAsync(appIdentityUser, password);
             if (!createOperationResult.Succeeded)
-                return false;
+                throw new DBOperationException("Account creation went wrong");
 
             var roleToAdd = "User";
             var addToRoleOperationResult = await _identityUow.UserManager.AddToRoleAsync(appIdentityUser, roleToAdd);
             if (!addToRoleOperationResult.Succeeded)
-                return false;
+                throw new DBOperationException("Adding role to user went wrong");
 
             var userInfo = _mpr.Map<UserInfo>(userInfoDto); 
             userInfo.AppIdentityUser = appIdentityUser;
 
             _uow.UsersInfo.AddUserInfo(userInfo);
             var rowsAffected = await _uow.SaveChangesAsync();
-            return rowsAffected == 1;
+            if (rowsAffected != 1)
+                throw new DBOperationException("User info creatiog went wrong");
         }
 
         public async Task<AppIdentityUserDTO> Authenticate(string email, string password)
@@ -99,6 +106,7 @@ namespace HelloSocNetw_BLL.Services
             return userInfoDto;
         }
 
+        //не используется, заменен на UserInfoService.UpdateUserInfoAsync()
         public async Task UpdateUserInfoAsync(UserInfoDTO userInfoDto)
         {
             var userInfo = _mpr.Map<UserInfo>(userInfoDto);
@@ -122,20 +130,24 @@ namespace HelloSocNetw_BLL.Services
             return operationResult.Succeeded;
         }
 
-        public async Task<bool> DeleteAccountAsync(AppIdentityUserDTO appIdentityUserDto)
+        public async Task DeleteAccountAsync(AppIdentityUserDTO appIdentityUserDto)
         {
             var appIdentityUser = _mpr.Map<AppIdentityUser>(appIdentityUserDto);
 
             var operationResult = await _identityUow.UserManager.DeleteAsync(appIdentityUser);
-            return operationResult.Succeeded;
+            if (!operationResult.Succeeded)
+                throw new DBOperationException("Account deleting went wrong");
         }
 
-        public async Task<bool> DeleteAccountByAppIdentityUserIdAsync(Guid appIdentityUserId)
+        public async Task DeleteAccountByAppIdentityUserIdAsync(Guid appIdentityUserId)
         {
             var appIdentityUser = await _identityUow.UserManager.FindByIdAsync(appIdentityUserId.ToString());
+            if (appIdentityUser == null)
+                throw new NotFoundException(nameof(AppIdentityUser), appIdentityUserId);
 
             var operationResult = await _identityUow.UserManager.DeleteAsync(appIdentityUser);
-            return operationResult.Succeeded;
+            if (!operationResult.Succeeded)
+                throw new DBOperationException("Account deleting went wrong");
         }
 
         public async Task<bool> IsEmailConfirmedAsync(AppIdentityUserDTO appIdentityUserDto)

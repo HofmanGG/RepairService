@@ -20,16 +20,16 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
         {
             //arrange
             var countryServiceMock = new Mock<ICountryService>();
-            countryServiceMock.Setup(svc => svc.GetCountryByIdAsync(It.IsAny<int>()))
+            countryServiceMock.Setup(svc => svc.GetCountryByCountryIdAsync(It.IsAny<int>()))
                 .ReturnsAsync((CountryDTO)null);
-            countryServiceMock.Setup(svc => svc.DeleteCountryByIdAsync(It.IsAny<int>()))
-                .ReturnsAsync(true);
+            countryServiceMock.Setup(svc => svc.DeleteCountryByCountryIdAsync(It.IsAny<int>()))
+                .Verifiable();
 
             var mapperMock = new Mock<IMapper>();
             mapperMock.Setup(m => m.Map<CountryModel>(It.IsAny<CountryDTO>()))
                 .Returns<CountryDTO>(u => new CountryModel());
 
-            var controller = new CountriesController(countryServiceMock.Object, mapperMock.Object);
+            var controller = new CountriesController(countryServiceMock.Object, null, mapperMock.Object, null);
 
             //act
             var response = await controller.DeleteCountry(123123123);
@@ -45,16 +45,16 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
             var countryToDelete = new CountryDTO() { CountryId = 1 };
 
             var countryServiceMock = new Mock<ICountryService>();
-            countryServiceMock.Setup(svc => svc.GetCountryByIdAsync(It.IsAny<int>()))
+            countryServiceMock.Setup(svc => svc.GetCountryByCountryIdAsync(It.IsAny<int>()))
                 .ReturnsAsync(countryToDelete);
-            countryServiceMock.Setup(svc => svc.DeleteCountryByIdAsync(It.IsAny<int>()))
-                .ReturnsAsync(true);
+            countryServiceMock.Setup(svc => svc.DeleteCountryByCountryIdAsync(It.IsAny<int>()))
+                .Verifiable();
 
             var mapperMock = new Mock<IMapper>();
             mapperMock.Setup(m => m.Map<CountryModel>(It.IsAny<CountryDTO>()))
                 .Returns<CountryDTO>(u => new CountryModel() { CountryId = u.CountryId});
 
-            var controller = new CountriesController(countryServiceMock.Object, mapperMock.Object);
+            var controller = new CountriesController(countryServiceMock.Object, null, mapperMock.Object, null);
 
             //act
             var response = await controller.DeleteCountry(123123123);
@@ -68,16 +68,16 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
         {
             //arrange
             var countryServiceMock = new Mock<ICountryService>();
-            countryServiceMock.Setup(svc => svc.GetCountryByIdAsync(It.IsAny<int>()))
+            countryServiceMock.Setup(svc => svc.GetCountryByCountryIdAsync(It.IsAny<int>()))
                 .ReturnsAsync(new CountryDTO());
-            countryServiceMock.Setup(svc => svc.DeleteCountryByIdAsync(It.IsAny<int>()))
-                .ReturnsAsync(false);
+            countryServiceMock.Setup(svc => svc.DeleteCountryByCountryIdAsync(It.IsAny<int>()))
+                .Verifiable();
 
             var mapperMock = new Mock<IMapper>();
             mapperMock.Setup(m => m.Map<CountryModel>(It.IsAny<CountryDTO>()))
                 .Returns<CountryDTO>(u => new CountryModel());
 
-            var controller = new CountriesController(countryServiceMock.Object, mapperMock.Object);
+            var controller = new CountriesController(countryServiceMock.Object, null, mapperMock.Object, null);
 
             //act
             var response = await controller.DeleteCountry(123123123);
@@ -91,16 +91,16 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
         {
             //arrange
             var countryServiceMock = new Mock<ICountryService>();
-            countryServiceMock.Setup(svc => svc.GetCountryByIdAsync(It.IsAny<int>()))
+            countryServiceMock.Setup(svc => svc.GetCountryByCountryIdAsync(It.IsAny<int>()))
                 .ReturnsAsync(new CountryDTO());
-            countryServiceMock.Setup(svc => svc.DeleteCountryByIdAsync(It.IsAny<int>()))
+            countryServiceMock.Setup(svc => svc.DeleteCountryByCountryIdAsync(It.IsAny<int>()))
                 .ThrowsAsync(new Exception());
 
             var mapperMock = new Mock<IMapper>();
             mapperMock.Setup(m => m.Map<CountryModel>(It.IsAny<CountryDTO>()))
                 .Returns<CountryDTO>(u => new CountryModel());
 
-            var controller = new CountriesController(countryServiceMock.Object, mapperMock.Object);
+            var controller = new CountriesController(countryServiceMock.Object, null, mapperMock.Object, null);
 
             //act
             var response = await controller.DeleteCountry(123123123);
@@ -139,7 +139,7 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
             mapperMock.Setup(m => m.Map<IEnumerable<CountryModel>>(It.IsAny<IEnumerable<CountryDTO>>()))
                 .Returns(mappedCountries);
 
-            var controller = new CountriesController(countryServiceMock.Object, mapperMock.Object);
+            var controller = new CountriesController(countryServiceMock.Object, null, mapperMock.Object, null);
 
             //act
             var response = await controller.GetCountries();

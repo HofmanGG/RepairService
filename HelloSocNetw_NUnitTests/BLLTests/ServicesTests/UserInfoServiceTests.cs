@@ -20,6 +20,19 @@ namespace HelloSocNetw_NUnitTests.BLLTests.Services
 {
     public class UserInfoServiceTests
     {
+        private readonly IMapper mapperObject;
+
+        public UserInfoServiceTests()
+        {
+            var mapperMock = new Mock<IMapper>();
+
+            mapperMock.Setup(m => m.Map<UserInfoDTO>(It.IsAny<UserInfo>()))
+                .Returns(new UserInfoDTO());
+
+            mapperMock.Setup(m => m.Map<UserInfo>(It.IsAny<UserInfoDTO>()))
+                .Returns(new UserInfo());
+        }
+
         [Fact]
         public async Task GetUserInfoByIdAsync_IdIs1_ReturnObjWithTHeSameId()
         {
@@ -27,8 +40,8 @@ namespace HelloSocNetw_NUnitTests.BLLTests.Services
             var trueObject = new UserInfo() { UserInfoId = 1 } ;
 
             var userInfoRepository = new Mock<IUserInfoRepository>();
-            userInfoRepository.Setup(rep => rep.GetUserInfoByIdAsync(It.IsAny<int>()))
-                .ReturnsAsync(trueObject);
+            userInfoRepository.Setup(rep => rep.GetUserInfoByUserInfoIdAsync(It.IsAny<int>()))
+                .ReturnsAsync(new UserInfo() { UserInfoId =  1});
 
             var unitOfWorkMock = new Mock<IUnitOfWork>();
             unitOfWorkMock.Setup(uof => uof.UsersInfo)
@@ -41,10 +54,10 @@ namespace HelloSocNetw_NUnitTests.BLLTests.Services
             var userInfoService = new UserInfoService(unitOfWorkMock.Object, mapperMock.Object);
 
             //act
-            var returnedObject = await userInfoService.GetUserInfoByIdAsync(1);
+            var returnedObject = await userInfoService.GetUserInfoByUserInfoIdAsync(1);
 
             //assert
-            trueObject.UserInfoId.Should().Be(trueObject.UserInfoId);
+            trueObject.UserInfoId.Should().Be(returnedObject.UserInfoId);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using HelloSocNetw_DAL.Entities;
 using HelloSocNetw_DAL.Infrastructure;
+using HelloSocNetw_DAL.Infrastructure.Exceptions;
 using HelloSocNetw_DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -92,22 +93,13 @@ namespace HelloSocNetw_DAL.EFRepositories
             _context.RepairRequests.Update(repairRequestToChange);
         }
 
-        private void DetachEntity(RepairRequest repairRequestToDetach)
-        {
-            var local = _context.Set<RepairRequest>()
-               .Local
-               .FirstOrDefault(rr => rr.RepairRequestId == repairRequestToDetach.RepairRequestId);
-
-            if (local != null)
-            {
-                _context.Entry(local).State = EntityState.Detached;
-            }
-        }
-
         public async Task DeleteRepairRequestByRepairRequestIdAsync(int repairRequestId)
         {
-            var repairRequest = await _context.RepairRequests.FindAsync(repairRequestId);
-            _context.RepairRequests.Remove(repairRequest);
+            var repairRequestToDelete = await _context.RepairRequests.FindAsync(repairRequestId);
+            if (repairRequestToDelete == null)
+                throw new NotFoundException(nameof(RepairRequest), repairRequestId);
+
+            _context.RepairRequests.Remove(repairRequestToDelete);
         }
             
         public async Task<bool> RepairRequestExistsAsync(int repairRequestId)

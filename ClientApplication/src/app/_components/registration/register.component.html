@@ -1,4 +1,5 @@
-<div class="col-md-6 offset-md-3 padding">
+<div class="col-md-6 offset-md-3">
+    <div class="padding">
 <h2>Registration</h2>
 <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
 
@@ -42,7 +43,6 @@
                     <div *ngIf="f.email.errors.email">Wrong Email</div>
                 </div>
             </div>
-            <div *ngIf="sc.conflict" class="alert alert-danger" role="alert">Account with such email already exists</div>
         </div>
         <div class="col">
             <div class="form-group">
@@ -155,7 +155,8 @@
         </button>
         <a routerLink="/login" class="btn btn-link text-light">Cancel</a>
     </div>
-
-    <div *ngIf="sc.unknownError" class="alert alert-danger" role="alert">Unknown Error</div>
 </form>
 </div>
+<div *ngIf="sc.conflict" class="alert alert-danger" role="alert">Account with such email already exists</div>
+<div *ngIf="sc.unknownError" class="alert alert-danger" role="alert">Unknown Error</div>
+</div>  

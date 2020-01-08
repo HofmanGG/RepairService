@@ -23,9 +23,9 @@ namespace HelloSocNetw_BLL.Interfaces
 
         Task AddUserInfoAsync(UserInfoDTO userInfoDto);
 
-        Task<bool> UpdateUserInfoAsync(UserInfoDTO newUserInfoDto);
+        Task UpdateUserInfoAsync(UserInfoDTO newUserInfoDto);
 
-        Task<bool> DeleteUserInfoByUserIdAsync(int userInfoId);
+        Task DeleteUserInfoByUserIdAsync(int userInfoId);
 
         Task<bool> UserInfoExistsAsync(int userInfoId);
     }

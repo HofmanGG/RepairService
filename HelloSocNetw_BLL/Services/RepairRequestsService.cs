@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using HelloSocNetw_BLL.EntitiesDTO;
+using HelloSocNetw_BLL.Infrastructure;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_DAL.Entities;
+using HelloSocNetw_DAL.Infrastructure.Exceptions;
 using HelloSocNetw_DAL.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -57,7 +59,7 @@ namespace HelloSocNetw_BLL.Services
             return count;
         }
 
-        public async Task<bool> AddRepairRequestAsync(RepairRequestDTO repairRequestDto)
+        public async Task AddRepairRequestAsync(RepairRequestDTO repairRequestDto)
         {
             var repairRequest = _mpr.Map<RepairRequest>(repairRequestDto);
             repairRequest.RequestTime = DateTime.Now;
@@ -67,12 +69,18 @@ namespace HelloSocNetw_BLL.Services
 
             _uow.RepairRequests.AddRepairRequest(repairRequest);
             var rowsAffected = await _uow.SaveChangesAsync();
-            return rowsAffected == 1;
+            if (rowsAffected != 1)
+                throw new DBOperationException("Repair request deleting went wrong");
         }
 
-        public async Task<bool> UpdateRepairRequestAsync(RepairRequestDTO newRepairRequestInfoDto)
+        public async Task UpdateRepairRequestAsync(RepairRequestDTO newRepairRequestInfoDto)
         {
-            var repairRequestToChange = await _uow.RepairRequests.GetRepairRequestByRepairRequestIdAsync(newRepairRequestInfoDto.RepairRequestId);
+            var repairRequestToChange = await _uow.RepairRequests
+                .GetRepairRequestAsync(rr => rr.RepairRequestId == newRepairRequestInfoDto.RepairRequestId &&
+                rr.UserInfoId == newRepairRequestInfoDto.UserInfoId);
+
+            if (repairRequestToChange == null)
+                throw new NotFoundException(nameof(RepairRequest), newRepairRequestInfoDto.RepairRequestId);
 
             repairRequestToChange.RepairStatus = (DALRepairStatusType)(int)newRepairRequestInfoDto.RepairStatus;
             repairRequestToChange.ProductName = newRepairRequestInfoDto.ProductName;
@@ -80,14 +88,16 @@ namespace HelloSocNetw_BLL.Services
 
             _uow.RepairRequests.UpdateRepairRequestAsync(repairRequestToChange);
             var rowsAffected = await _uow.SaveChangesAsync();
-            return rowsAffected == 1;
+            if (rowsAffected != 1)
+                throw new DBOperationException("Repair request updating went wrong");
         }
 
-        public async Task<bool> DeleteRepairRequestByRepairRequestIdAsync(int repairRequestId)
+        public async Task DeleteRepairRequestByRepairRequestIdAsync(int repairRequestId)
         {
             await _uow.RepairRequests.DeleteRepairRequestByRepairRequestIdAsync(repairRequestId);
             var rowsAffected =  await _uow.SaveChangesAsync();
-            return rowsAffected == 1;
+            if (rowsAffected != 1)
+                throw new DBOperationException("Repair request deleting went wrong");   
         }
 
         public async Task<bool> RepairRequestExistsAsync(int repairRequestId)

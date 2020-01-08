@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -6,32 +7,34 @@ using BLL.ModelsDTO;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_DAL.Infrastructure.Exceptions;
 using HelloSocNetw_PL.Infrastructure;
+using HelloSocNetw_PL.Infrastructure.Interfaces;
 using HelloSocNetw_PL.Models;
 using HelloSocNetw_PL.Models.UserInfoModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using static HelloSocNetw_PL.Infrastructure.ControllerExtension;
 
 namespace PL.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
     [Authorize(Roles = "Manager, Admin")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public class UsersController : ControllerBase
+    public class UsersController : ApiController
     {
         private readonly IUserInfoService _userInfoSvc;
-        private readonly IMapper _mpr;
         private readonly ILogger _lgr;
+        private readonly IMapper _mpr;
+        private readonly ICurrentUserService _curUserSvc;
 
-        public UsersController(IUserInfoService userInfoService, IMapper mapper, ILogger<UsersController> logger)
+        public UsersController(
+            IUserInfoService userInfoService, 
+            ILogger<UsersController> logger,
+            IMapper mapper,
+            ICurrentUserService currentUserService)
         {
             _userInfoSvc = userInfoService;
-            _mpr = mapper;
             _lgr = logger;
+            _mpr = mapper;
+            _curUserSvc = currentUserService;
         }
 
         /// <summary>
@@ -52,13 +55,9 @@ namespace PL.Controllers
         [ProducesResponseType(200), ProducesResponseType(404)]
         public async Task<ActionResult<UserInfoModel>> GetUser(int userInfoId)
         {
-            _lgr.LogInformation(LoggingEvents.GetItem, "Getting userInfo {userInfoId}", userInfoId);
             var userInfoDto = await _userInfoSvc.GetUserInfoByUserInfoIdAsync(userInfoId);
             if (userInfoDto == null)
-            {
-                _lgr.LogWarning(LoggingEvents.GetItem, "GetUser({userInfoId}) NOT FOUND", userInfoId);
                 return NotFound();
-            }
 
             var userInfoModel = _mpr.Map<UserInfoModel>(userInfoDto);
             return userInfoModel;
@@ -82,8 +81,6 @@ namespace PL.Controllers
         [ProducesResponseType(200), ProducesResponseType(404)]
         public async Task<ActionResult<int>> GetUserInfoIdByEmail(string email)
         {
-            _lgr.LogInformation(LoggingEvents.GetItem, "Getting userInfoId by email {email}", email);
-
             var id = await _userInfoSvc.GetUserInfoIdByEmailAsync(email);
             return id;
         }
@@ -105,8 +102,8 @@ namespace PL.Controllers
         [ProducesResponseType(200)]
         public async Task<ActionResult<int>> GetCountOfUsers()
         {
-            _lgr.LogInformation(LoggingEvents.GetItem, "Getting count of all users");
-            return await _userInfoSvc.GetCountOfUsersInfoAsync();
+            var count =  await _userInfoSvc.GetCountOfUsersInfoAsync();
+            return count;
         }
 
         /// <summary>
@@ -133,48 +130,44 @@ namespace PL.Controllers
             if (userInfoId != userInfoModel.UserInfoId)
                 return BadRequest();
 
-            var authorizedUserId = this.GetUserId();
-
-            var userInfoToUpdate = await _userInfoSvc.GetUserInfoByAppIdentityIdAsync(authorizedUserId);
-            if (userInfoToUpdate == null)
-            {
-                _lgr.LogWarning(LoggingEvents.UpdateItemNotFound, "ChangeUserInfo({userInfoId}) NOT FOUND", userInfoId);
-                return NotFound();
-            }
+            var authorizedUserId = _curUserSvc.UserId;
 
             var newUserInfoDto = _mpr.Map<UserInfoDTO>(userInfoModel);
+            newUserInfoDto.AppIdentityUserId = authorizedUserId;
 
-            var successfullyUpdated = await _userInfoSvc.UpdateUserInfoAsync(newUserInfoDto);
-            if (successfullyUpdated)
-            {
-                _lgr.LogInformation(LoggingEvents.UpdateItem, "User Info {userInfoId} is changed", userInfoId);
+            await _userInfoSvc.UpdateUserInfoAsync(newUserInfoDto);
 
-                var changedUserInfoDto = await _userInfoSvc.GetUserInfoByUserInfoIdAsync(userInfoId);
-                var changedUserInfoModel = _mpr.Map<UserInfoModel>(changedUserInfoDto);
+            var changedUserInfoDto = await _userInfoSvc.GetUserInfoByUserInfoIdAsync(userInfoId);
+            var changedUserInfoModel = _mpr.Map<UserInfoModel>(changedUserInfoDto);
 
-                return changedUserInfoModel;
-            }
-            else
-            {
-                _lgr.LogWarning(LoggingEvents.UpdateItemBadRequest, "ChangeUserInfo({userInfoId}) BAD REQUEST", userInfoId);
-                return BadRequest();
-            }
+            return changedUserInfoModel;
         }
 
         //не используется, заменен Accounts.DeleteAccount
+        /// <summary>
+        /// Deletes user
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /confirmemail
+        ///     {
+        ///        "email": "example@gmail.com",
+        ///        "code": "alotofsymbols.............."
+        ///     }
+        ///
+        /// </remarks>
+        /// <response code="302">Redirectes to login page</response>
+        /// <response code="500">If an exception on server is thrown</response>'
+        /// 
         [HttpDelete("{userInfoId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(404)]
         public async Task<IActionResult> DeleteUser(int userInfoId)
         {
-            var userInfoExists = await _userInfoSvc.UserInfoExistsAsync(userInfoId);
-            if (!userInfoExists)
-                return NotFound();
+            await _userInfoSvc.DeleteUserInfoByUserIdAsync(userInfoId);
 
-            if (await _userInfoSvc.DeleteUserInfoByUserIdAsync(userInfoId))
-                return NoContent();
-            else
-                return BadRequest();
+            return NoContent();
         }
     }   
 }

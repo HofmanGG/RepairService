@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using BLL.ModelsDTO;
+using HelloSocNetw_BLL.Infrastructure;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_DAL.Entities;
+using HelloSocNetw_DAL.Infrastructure.Exceptions;
 using HelloSocNetw_DAL.Interfaces;
 using static HelloSocNetw_DAL.Infrastructure.DALEnums;
 
@@ -61,12 +63,19 @@ namespace BLL.Services
         {
             var userInfo = _mpr.Map<UserInfo>(userInfoDto);
             _uow.UsersInfo.AddUserInfo(userInfo);
-            await _uow.SaveChangesAsync();
+            var rowsAffected = await _uow.SaveChangesAsync();
+            if (rowsAffected != 1)
+                throw new DBOperationException("User info creating went wrong");
         }
 
-        public async Task<bool> UpdateUserInfoAsync(UserInfoDTO newUserInfoDto)
+        public async Task UpdateUserInfoAsync(UserInfoDTO newUserInfoDto)
         {
-            var userInfoToChange = await _uow.UsersInfo.GetUserInfoByUserInfoIdAsync(newUserInfoDto.UserInfoId);
+            var userInfoToChange = await _uow.UsersInfo
+                .GetUserInfoAsync(u => u.UserInfoId == newUserInfoDto.UserInfoId &&
+                u.AppIdentityUserId == newUserInfoDto.AppIdentityUserId);
+
+            if (userInfoToChange == null)
+                throw new NotFoundException(nameof(UserInfo), newUserInfoDto.UserInfoId);
 
             userInfoToChange.CountryId = newUserInfoDto.CountryId;
             userInfoToChange.Gender = (DALGenderType)(int)newUserInfoDto.Gender;
@@ -76,14 +85,17 @@ namespace BLL.Services
 
             _uow.UsersInfo.UpdateUserInfo(userInfoToChange);
             var rowsAffected = await _uow.SaveChangesAsync();
-            return rowsAffected == 1;
+            if(rowsAffected != 1)
+                throw new DBOperationException("User info updating went wrong");
         }
 
-        public async Task<bool> DeleteUserInfoByUserIdAsync(int userInfoId)
+        //не используется, заменен
+        public async Task DeleteUserInfoByUserIdAsync(int userInfoId)
         {
             await _uow.UsersInfo.DeleteUserInfoByUserInfoId(userInfoId);
             var rowsAffected =  await _uow.SaveChangesAsync();
-            return rowsAffected == 2;
+            if (rowsAffected != 2)
+                throw new DBOperationException("User info deleting went wrong");
         }
 
         public async Task<bool> UserInfoExistsAsync(int userInfoId)

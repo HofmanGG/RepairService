@@ -2,6 +2,7 @@
 using HelloSocNetw_BLL.EntitiesDTO;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_PL.Infrastructure;
+using HelloSocNetw_PL.Infrastructure.Interfaces;
 using HelloSocNetw_PL.Models;
 using HelloSocNetw_PL.Models.CountryModels;
 using HelloSocNetw_PL.Validators;
@@ -9,29 +10,31 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace HelloSocNetw_PL.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    [ValidateModel]
-    [Authorize]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public class CountriesController : ControllerBase
+    [Authorize(Roles = "Admin")]
+    public class CountriesController : ApiController
     {
         private readonly ICountryService _countrySvc;
-        private readonly IMapper _mpr;
         private readonly ILogger _lgr;
+        private readonly IMapper _mpr;
+        private readonly ICurrentUserService _curUserSvc;
 
-        public CountriesController(ICountryService countryService, IMapper mapper, ILogger<CountriesController> logger)
+        public CountriesController(
+            ICountryService countryService,
+            ILogger<CountriesController> logger,
+            IMapper mapper,
+            ICurrentUserService currentUserService)
         {
             _countrySvc = countryService;
-            _mpr = mapper;
             _lgr = logger;
+            _mpr = mapper;
+            _curUserSvc = currentUserService;
         }
 
         /// <summary>
@@ -53,8 +56,6 @@ namespace HelloSocNetw_PL.Controllers
         [ProducesResponseType(200)]
         public async Task<ActionResult<IEnumerable<CountryModel>>> GetCountries()
         {
-            _lgr.LogInformation(LoggingEvents.ListItems, "Getting All Countries");
-
             var countriesDto = await _countrySvc.GetCountriesAsync();
             var countryModels = _mpr.Map<IEnumerable<CountryModel>>(countriesDto);
             return countryModels.ToList();
@@ -80,27 +81,10 @@ namespace HelloSocNetw_PL.Controllers
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(409)]
         public async Task<IActionResult> AddCountry(NewCountryModel countryModel)
         {
-            var countryWithSuchNameExists = await _countrySvc.CountryWithSuchNameExistsAsync(countryModel.CountryName);
-            if (countryWithSuchNameExists)
-            {
-                _lgr.LogInformation(LoggingEvents.InsertItemConflict, "AddCountry() CONFLICT");
-
-                return Conflict();
-            }
-
             var countryDto = _mpr.Map<CountryDTO>(countryModel);
-
-            var successfullyAdded = await _countrySvc.AddCountryAsync(countryDto);
-            if (successfullyAdded)
-            {
-                _lgr.LogInformation(LoggingEvents.InsertItem, "Country is created");
-                return NoContent();
-            }
-            else
-            {
-                _lgr.LogInformation(LoggingEvents.InsertItemBadRequest, "AddCountry() BAD REQUEST");
-                return BadRequest();
-            }
+            await _countrySvc.AddCountryAsync(countryDto);
+            
+            return NoContent();
         }
 
         /// <summary>
@@ -127,33 +111,10 @@ namespace HelloSocNetw_PL.Controllers
             if (countryId != countryModel.CountryId)
                 return BadRequest();
 
-            var countryWithSuchNameExists = await _countrySvc.CountryWithSuchNameExistsAsync(countryModel.CountryName);
-            if (countryWithSuchNameExists)
-            {
-                _lgr.LogInformation(LoggingEvents.UpdateItemConflict, "UpdateCountry({countryId}) CONFLICT", countryId);
-                return Conflict();
-            }
-
-            var countryToUpdate = await _countrySvc.GetCountryByCountryIdAsync(countryModel.CountryId);
-            if (countryToUpdate == null)
-            {
-                _lgr.LogWarning(LoggingEvents.UpdateItemNotFound, "UpdateCountry({countryId}) NOT FOUND", countryId);
-                return NotFound();
-            }
-
             var newCountryInfo = _mpr.Map<CountryDTO>(countryModel);
+            await _countrySvc.UpdateCountryAsync(newCountryInfo);
 
-            var successfullyUpdated = await _countrySvc.UpdateCountryAsync(newCountryInfo);
-            if (successfullyUpdated)
-            {
-                _lgr.LogWarning(LoggingEvents.UpdateItemBadRequest, "Country {countryId}) Updated", countryId);
-                return NoContent();
-            }
-            else
-            {
-                _lgr.LogWarning(LoggingEvents.InsertItemBadRequest, "UpdateCountry({countryId}) BAD REQUEST", countryId);
-                return BadRequest();
-            }
+            return NoContent();
         }
 
         /// <summary>
@@ -175,23 +136,9 @@ namespace HelloSocNetw_PL.Controllers
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(404)]
         public async Task<IActionResult> DeleteCountry(int countryId)
         {
-            var countryToDeleteExists = await _countrySvc.CountryWithSuchCountryIdExistsAsync(countryId);
-            if (!countryToDeleteExists)
-            {
-                 _lgr.LogWarning(LoggingEvents.DeleteItemNotFound, "DeleteCountry({countryId}) NOT FOUND", countryId);
-                return NotFound();
-            }
+            await _countrySvc.DeleteCountryByCountryIdAsync(countryId);
 
-            if (await _countrySvc.DeleteCountryByCountryIdAsync(countryId))
-            {
-                _lgr.LogInformation(LoggingEvents.DeleteItem, "Country {countryId} is deleted", countryId);
-                return NoContent();
-            }
-            else
-            {
-                _lgr.LogWarning(LoggingEvents.DeleteItemBadRequest, "DeleteCountry({countryId}) BAD REQUEST", countryId);
-                return BadRequest();
-            }
+            return NoContent();
         }
     }
 }

@@ -1,6 +1,4 @@
 ﻿using HelloSocNetw_BLL.Entities;
-using HelloSocNetw_DAL;
-using HelloSocNetw_DAL.Interfaces;
 using HelloSocNetw_PL.Infrastructure;
 using HelloSocNetw_PL.Infrastructure.MapperProfiles;
 using HelloSocNetw_PL.Infrastructure.Middlewares;
@@ -10,7 +8,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Serilog;
 
 namespace HelloSocNetw_PL
@@ -28,6 +25,7 @@ namespace HelloSocNetw_PL
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
+            services.AddHttpContextAccessor();
             services.AddConfiguredDependencies();
             services.AddConfiguredDBContext(Configuration);
             services.AddConfiguredAutomapper();
@@ -54,8 +52,8 @@ namespace HelloSocNetw_PL
                 app.UseHsts();
             }
 
-            app.UseMiddleware(typeof(ErrorHandlingMiddleware));
             app.UseCustomDatabaseSeeding();
+            app.UseCustomExceptionHandler();
 
             app.UseHttpsRedirection();
             app.UseDefaultFiles();

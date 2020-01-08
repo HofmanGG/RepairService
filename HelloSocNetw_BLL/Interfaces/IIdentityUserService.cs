@@ -10,7 +10,7 @@ namespace HelloSocNetw_BLL.Interfaces
     public interface IIdentityUserService
     {
 
-        Task<bool> CreateAccountAsync(UserInfoDTO userInfoDto, string email, string userName, string password);
+        Task CreateAccountAsync(UserInfoDTO userInfoDto, string email, string userName, string password);
 
         Task<AppIdentityUserDTO> Authenticate(string email, string password);
 
@@ -28,9 +28,9 @@ namespace HelloSocNetw_BLL.Interfaces
 
         Task<bool> UserWithSuchEmailAlreadyExistsAsync(string email);
 
-        Task<bool> DeleteAccountByAppIdentityUserIdAsync(Guid appIdentityUserId);
+        Task DeleteAccountByAppIdentityUserIdAsync(Guid appIdentityUserId);
 
-        Task<bool> DeleteAccountAsync(AppIdentityUserDTO appIdentityUserDto);
+        Task DeleteAccountAsync(AppIdentityUserDTO appIdentityUserDto);
 
         Task<bool> IsEmailConfirmedAsync(AppIdentityUserDTO appIdentityUserDto);
 

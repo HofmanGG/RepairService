@@ -1,9 +1,8 @@
-﻿using System;
-using System.Reflection;
-using AutoMapper;
-using BLL.Services;
+﻿using BLL.Services;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_BLL.Services;
+using HelloSocNetw_PL.Infrastructure.Interfaces;
+using HelloSocNetw_PL.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HelloSocNetw_PL.Infrastructure
@@ -18,6 +17,8 @@ namespace HelloSocNetw_PL.Infrastructure
             services.AddScoped<IUserInfoService, UserInfoService>();
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<IRepairRequestsService, RepairRequestsService>();
+
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
 
             services.AddScoped<IEmailSender, EmailSender>();
         }

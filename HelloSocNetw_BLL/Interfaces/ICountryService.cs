@@ -12,11 +12,11 @@ namespace HelloSocNetw_BLL.Interfaces
 
         Task<CountryDTO> GetCountryByCountryIdAsync(int countryId);
 
-        Task<bool> AddCountryAsync(CountryDTO countryDto);
+        Task AddCountryAsync(CountryDTO countryDto);
 
-        Task<bool> UpdateCountryAsync(CountryDTO newCountryInfoDto);
+        Task UpdateCountryAsync(CountryDTO newCountryInfoDto);
 
-        Task<bool> DeleteCountryByCountryIdAsync(int countryId);
+        Task DeleteCountryByCountryIdAsync(int countryId);
 
         Task<bool> CountryWithSuchCountryIdExistsAsync(int countryId);
 

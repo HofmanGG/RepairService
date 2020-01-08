@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HelloSocNetw_DAL.Entities;
 using HelloSocNetw_DAL.Infrastructure;
+using HelloSocNetw_DAL.Infrastructure.Exceptions;
 using HelloSocNetw_DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -51,8 +52,11 @@ namespace HelloSocNetw_DAL.EFRepositories
 
         public async Task DeleteCountryByIdAsync(int countryId)
         {
-            var country = await _context.Countries.FindAsync(countryId);
-            _context.Countries.Remove(country);
+            var countryToDelete = await _context.Countries.FindAsync(countryId);
+            if (countryToDelete == null)
+                throw new NotFoundException(nameof(Country), countryId);
+
+            _context.Countries.Remove(countryToDelete);
         }
 
         public void DeleteCountries(IEnumerable<Country> country)
@@ -63,18 +67,6 @@ namespace HelloSocNetw_DAL.EFRepositories
         public void UpdateCountryAsync(Country countryToUpdate) 
         {
             _context.Update(countryToUpdate);
-        }
-
-        private void DetachEntity(Country countryToDetach)
-        {
-            var local = _context.Set<Country>()
-                   .Local
-                   .FirstOrDefault(c => c.CountryId == countryToDetach.CountryId);
-
-            if (local != null)
-            {
-                _context.Entry(local).State = EntityState.Detached;
-            }
         }
 
         public async Task<bool> CountryExistsAsyncByCountryId(int countryId)

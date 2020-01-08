@@ -3,8 +3,10 @@ using BLL.ModelsDTO;
 using FluentAssertions;
 using HelloSocNetw_BLL.EntitiesDTO;
 using HelloSocNetw_BLL.Interfaces;
+using HelloSocNetw_PL.Infrastructure.Interfaces;
 using HelloSocNetw_PL.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 using PL.Controllers;
 using System;
@@ -15,6 +17,9 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
 {
     public class AccountsControllerTests
     {
+        private ILogger<AccountsController> loggerObject = new Mock<ILogger<AccountsController>>().Object;
+        private ICurrentUserService currentUserServiceObject = new Mock<ICurrentUserService>().Object;
+
         [Fact]
         public async Task SignIn_UserDoesNotExist_ReturnUnauthorizedStatusCode()
         {
@@ -31,7 +36,7 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
 
             var emailSenderMock = new Mock<IEmailSender>();
 
-            var controller = new AccountsController(identityUserService.Object, mapperMock.Object, null, null);
+            var controller = new AccountsController(identityUserService.Object, emailSenderMock.Object, loggerObject, mapperMock.Object, currentUserServiceObject);
 
             //act
             var response = await controller.SignIn(loginModel);
@@ -56,7 +61,7 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
 
             var emailSenderMock = new Mock<IEmailSender>();
 
-            var controller = new AccountsController(identityUserService.Object, mapperMock.Object, emailSenderMock.Object, null);
+            var controller = new AccountsController(identityUserService.Object, emailSenderMock.Object, loggerObject, mapperMock.Object, currentUserServiceObject);
 
             //act
             var response = await controller.SignIn(loginModel);
@@ -81,7 +86,7 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
 
             var emailSenderMock = new Mock<IEmailSender>();
 
-            var controller = new AccountsController(identityUserService.Object, mapperMock.Object, emailSenderMock.Object, null);
+            var controller = new AccountsController(identityUserService.Object, emailSenderMock.Object, loggerObject, mapperMock.Object, currentUserServiceObject);
 
             //act
             var response = await controller.SignIn(loginModel);
@@ -106,13 +111,13 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
 
             var emailSenderMock = new Mock<IEmailSender>();
 
-            var controller = new AccountsController(identityUserService.Object, mapperMock.Object, emailSenderMock.Object, null);
+            var controller = new AccountsController(identityUserService.Object, emailSenderMock.Object, loggerObject, mapperMock.Object, currentUserServiceObject);
 
             //act
             var response = await controller.SignUp(registerModel);
 
             // assert
-            response.Should().BeOfType<ConflictResult>();
+            response.Should().BeOfType<OkResult>();
         }
 
         [Fact]
@@ -131,7 +136,7 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
 
             var emailSenderMock = new Mock<IEmailSender>();
 
-            var controller = new AccountsController(identityUserService.Object, mapperMock.Object, emailSenderMock.Object, null);
+            var controller = new AccountsController(identityUserService.Object, emailSenderMock.Object, loggerObject, mapperMock.Object, null);
 
             //act
             var response = await controller.SignUp(registerModel);
@@ -156,7 +161,7 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
 
             var emailSenderMock = new Mock<IEmailSender>();
 
-            var controller = new AccountsController(identityUserService.Object, mapperMock.Object, emailSenderMock.Object, null);
+            var controller = new AccountsController(identityUserService.Object, emailSenderMock.Object, loggerObject, mapperMock.Object, currentUserServiceObject);
 
             //act
             var response = await controller.SignUp(registerModel);

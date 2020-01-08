@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelloSocNetw_DAL", "HelloSo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelloSocNetw_NUnitTests", "HelloSocNetw_NUnitTests\HelloSocNetw_NUnitTests.csproj", "{816598E3-BD8C-4B20-AD9D-1DD0D053B974}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloSocNetw_CrossCutting", "HelloSocNetw_CrossCutting\HelloSocNetw_CrossCutting.csproj", "{B8A85E72-059E-42F7-A43C-AA03BF807B69}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{816598E3-BD8C-4B20-AD9D-1DD0D053B974}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{816598E3-BD8C-4B20-AD9D-1DD0D053B974}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{816598E3-BD8C-4B20-AD9D-1DD0D053B974}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8A85E72-059E-42F7-A43C-AA03BF807B69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8A85E72-059E-42F7-A43C-AA03BF807B69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8A85E72-059E-42F7-A43C-AA03BF807B69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8A85E72-059E-42F7-A43C-AA03BF807B69}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

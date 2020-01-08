@@ -82,9 +82,9 @@ namespace HelloSocNetw_DAL.EFRepositories
 
         public async Task<TType> GetAsync<TType>(Expression<Func<UserInfo, bool>> filter, Expression<Func<UserInfo, TType>> select) where TType : class
         {
-            var foundObject =  await _context.UsersInfo.Where(filter).Select(select).FirstOrDefaultAsync();
+            var foundObject = await _context.UsersInfo.Where(filter).Select(select).FirstOrDefaultAsync();
             if (foundObject == null)
-                throw new ObjectNotFoundException("Object with such filter is not found");
+                throw new NotFoundException(nameof(UserInfo), filter);
             else
                 return foundObject;
         }
@@ -115,6 +115,9 @@ namespace HelloSocNetw_DAL.EFRepositories
         public async Task DeleteUserInfoByUserInfoId(int userInfoId)
         {
             var userInfoToDelete = await _context.UsersInfo.FindAsync(userInfoId);
+            if (userInfoToDelete == null)
+                throw new NotFoundException(nameof(UserInfo), userInfoId);
+
             _context.UsersInfo.Remove(userInfoToDelete);
         }
 
@@ -130,18 +133,6 @@ namespace HelloSocNetw_DAL.EFRepositories
         public void UpdateUserInfo(UserInfo userInfoToChange)
         {
             _context.UsersInfo.Update(userInfoToChange);
-        }
-
-        private void DetachEntity(UserInfo userInfoToDetach)
-        {
-            var local = _context.Set<UserInfo>()
-               .Local
-               .FirstOrDefault(u => u.UserInfoId == userInfoToDetach.UserInfoId);
-
-            if (local != null)
-            {
-                _context.Entry(local).State = EntityState.Detached;
-            }
         }
 
         public async Task<bool> UserInfoExistsAsync(int userInfoId)
