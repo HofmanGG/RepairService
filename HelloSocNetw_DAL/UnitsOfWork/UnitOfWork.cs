@@ -23,24 +23,15 @@ namespace HelloSocNetw_DAL.UnitsOfWork
         //оставил set public для тестирования 
         private IUserInfoRepository _userInfoRepository;
         public IUserInfoRepository UsersInfo
-        {
-            get => _userInfoRepository ?? (_userInfoRepository = new EfUserInfoRepository(_context, new IncludesParser<UserInfo>()));
-            set => UsersInfo = value;
-        }
+            => _userInfoRepository ?? (_userInfoRepository = new EfUserInfoRepository(_context, new IncludesParser<UserInfo>()));
 
         private IRepairRequestRepository _repairRequestRepository;
-        public IRepairRequestRepository RepairRequests
-        {
-            get => _repairRequestRepository ?? (_repairRequestRepository = new EfRepairRequestRepository(_context, new IncludesParser<RepairRequest>()));
-            set => RepairRequests = value;
-        }
+        public IRepairRequestRepository RepairRequests 
+            => _repairRequestRepository ?? (_repairRequestRepository = new EfRepairRequestRepository(_context, new IncludesParser<RepairRequest>()));
 
         private ICountryRepository _countryRepository;
-        public ICountryRepository Countries
-        {
-            get => _countryRepository ?? (_countryRepository = new EfCountryRepository(_context));
-            set => Countries = value;
-        }
+        public ICountryRepository Countries  
+            => _countryRepository ?? (_countryRepository = new EfCountryRepository(_context));
 
         public async Task<int> SaveChangesAsync()
         {
