@@ -82,7 +82,7 @@ export class AccountComponent implements OnInit {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
   }
 
-  get f() {return this.changeInfoForm.controls; }
+  get f() { return this.changeInfoForm.controls; }
 
   onSubmit() {
     this.submitted = true;

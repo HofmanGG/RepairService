@@ -17,7 +17,6 @@ using Microsoft.Extensions.Logging;
 
 namespace PL.Controllers
 {
-    [Authorize(Roles = "Manager, Admin")]
     public class UsersController : ApiController
     {
         private readonly IUserInfoService _userInfoSvc;

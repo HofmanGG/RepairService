@@ -28,6 +28,8 @@ import { AddRoleComponent } from './_components/controlpanel/control-panel-roles
 import { DeleteRoleComponent } from './_components/controlpanel/control-panel-roles/delete-role/delete-role.component';
 import { UpdateRoleComponent } from './_components/controlpanel/control-panel-roles/update-role/update-role.component';
 import { ControlPanelComponent } from './_components/controlpanel/control-panel.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatButtonModule, MatFormFieldModule, MatInputModule, MatRippleModule, MatSelectModule, MatOptionModule} from '@angular/material';
 
 @NgModule({
     imports: [
@@ -36,7 +38,14 @@ import { ControlPanelComponent } from './_components/controlpanel/control-panel.
         HttpClientModule,
         AppRoutingModule,
         ReactiveFormsModule,
-        FormsModule
+        FormsModule,
+        MatButtonModule,
+  MatFormFieldModule,
+  MatInputModule,
+  MatRippleModule,
+  MatSelectModule,
+  MatOptionModule,
+  BrowserAnimationsModule
     ],
     declarations: [
         AppComponent,

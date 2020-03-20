@@ -4,3 +4,12 @@
     margin-top: 20px;
     border-radius: 20px;
 }
+
+.dropdown{
+    max-height: 300px; /*Provide height in pixels or in other units as per your layout*/
+    overflow-y: auto; /*Provide an auto overflow to diaply scroll*/
+   }
+
+   .test{
+       position: absolute;
+   }

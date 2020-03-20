@@ -1,13 +1,13 @@
 <form [formGroup]="deleteRoleForm" (ngSubmit)="DeleteRole()">
         <h4>Delete Role</h4>
         <div class="form-group">
-            <select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()" onblur="this.size=0;" class="form-control" formControlName="id" 
-                [ngClass]="{ 'is-invalid': submitted && f.id.errors }">>
-                <option value="" disabled>Choose Role</option>
-                <option *ngFor="let role of roleService.roles | async" [ngValue]="role.id">
+            <mat-select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()" onblur="this.size=0;" class="form-control" formControlName="id" 
+                [ngClass]="{ 'is-invalid': submitted && f.id.errors }">
+                <mat-option value="" disabled>Choose Role</mat-option>
+                <mat-option *ngFor="let role of roleService.roles | async" [value]="role.id">
                     {{role.name}}
-                </option>
-            </select>
+                </mat-option>
+            </mat-select>
             <div *ngIf="submitted && f.id.errors" class="invalid-feedback">
                 <div *ngIf="f.id.errors.required">Role is required</div>
             </div>
