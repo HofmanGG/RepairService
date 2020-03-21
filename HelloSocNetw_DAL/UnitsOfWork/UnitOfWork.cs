@@ -23,7 +23,6 @@ namespace HelloSocNetw_DAL.UnitsOfWork
             _includesParserFactory = includesParserFactory;
         }
 
-        //оставил set public для тестирования 
         private IUserInfoRepository _userInfoRepository;
         public IUserInfoRepository UsersInfo
             => _userInfoRepository ?? (_userInfoRepository = new EfUserInfoRepository(_context, _includesParserFactory.GetIncludesParser<UserInfo>()));
