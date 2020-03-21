@@ -96,7 +96,7 @@
             <mat-select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()"  onblur="this.size=0;" formControlName="dayOfBirth" class="form-control"
                 [ngClass]="{ 'is-invalid': submitted && f.dayOfBirth.errors }">
                 <mat-option value="" disabled hidden>Day Of Birth</mat-option>
-                <mat-option *ngFor="let day of days">
+                <mat-option *ngFor="let day of days" [value]="day">
                     {{day}}
                 </mat-option>
             </mat-select>
@@ -111,7 +111,7 @@
             <mat-select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()"  onblur="this.size=0;" formControlName="monthOfBirth" class="form-control"
                 [ngClass]="{ 'is-invalid': submitted && f.monthOfBirth.errors }">
                 <mat-option value="" disabled hidden>Month Of Birth</mat-option>
-                <mat-option *ngFor="let month of months">
+                <mat-option *ngFor="let month of months" [value]="month">
                     {{month}}
                 </mat-option>
             </mat-select>
@@ -125,7 +125,7 @@
             <mat-select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()"  onblur="this.size=0;" formControlName="yearOfBirth" class="form-control"
                 [ngClass]="{ 'is-invalid': submitted && f.yearOfBirth.errors }">
                 <mat-option value="" disabled hidden>Year Of Birth</mat-option>
-                <mat-option *ngFor="let year of years">
+                <mat-option *ngFor="let year of years" [value]="year">
                     {{year}}
                 </mat-option>
             </mat-select>
