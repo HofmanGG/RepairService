@@ -22,28 +22,5 @@ namespace HelloSocNetw_DAL.UnitsOfWork
         //custom identity managers
         public UserManager<AppIdentityUser> UserManager { get; }
         public RoleManager<AppRole> RoleManager { get; }
-
-        private bool disposed = false;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                if (disposing)
-                {
-                    UserManager.Dispose();
-                    RoleManager.Dispose();
-                }
-            }
-            disposed = true;
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        //не добавлял деструктор, потому что нету неуправляемых ресурсов
     }
 }

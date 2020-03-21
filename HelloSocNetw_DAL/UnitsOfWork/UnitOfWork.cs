@@ -37,27 +37,5 @@ namespace HelloSocNetw_DAL.UnitsOfWork
         {
             return await _context.SaveChangesAsync();
         }
-
-        private bool disposed = false;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                if (disposing)
-                {
-                    _context.Dispose();
-                }
-            }
-            disposed = true;
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        //не добавлял деструктор, потому что нету неуправляемых ресурсов
     }
 }
