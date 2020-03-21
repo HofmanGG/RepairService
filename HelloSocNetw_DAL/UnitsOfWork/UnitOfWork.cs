@@ -12,22 +12,25 @@ namespace HelloSocNetw_DAL.UnitsOfWork
     public class UnitOfWork : IUnitOfWork
     {
         private readonly SocNetwContext _context;
+        private readonly IIncludesParserFactory _includesParserFactory;
 
         public UnitOfWork(
-            SocNetwContext context
+            SocNetwContext context,
+            IIncludesParserFactory includesParserFactory
             )
         {
             _context = context;
+            _includesParserFactory = includesParserFactory;
         }
 
         //оставил set public для тестирования 
         private IUserInfoRepository _userInfoRepository;
         public IUserInfoRepository UsersInfo
-            => _userInfoRepository ?? (_userInfoRepository = new EfUserInfoRepository(_context, new IncludesParser<UserInfo>()));
+            => _userInfoRepository ?? (_userInfoRepository = new EfUserInfoRepository(_context, _includesParserFactory.GetIncludesParser<UserInfo>()));
 
         private IRepairRequestRepository _repairRequestRepository;
         public IRepairRequestRepository RepairRequests 
-            => _repairRequestRepository ?? (_repairRequestRepository = new EfRepairRequestRepository(_context, new IncludesParser<RepairRequest>()));
+            => _repairRequestRepository ?? (_repairRequestRepository = new EfRepairRequestRepository(_context, _includesParserFactory.GetIncludesParser<RepairRequest>()));
 
         private ICountryRepository _countryRepository;
         public ICountryRepository Countries  

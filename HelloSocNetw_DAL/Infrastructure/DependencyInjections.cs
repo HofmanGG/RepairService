@@ -32,6 +32,8 @@ namespace HelloSocNetw_DAL.Infrastructure
 
                 options.User.RequireUniqueEmail = true;
             });
+
+            services.AddScoped<IIncludesParserFactory, IncludesParserFactory>();
         }
     }
 }
