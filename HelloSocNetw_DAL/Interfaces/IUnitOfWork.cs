@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace HelloSocNetw_DAL.Interfaces
 {
-    public interface IUnitOfWork : IDisposable
+    public interface IUnitOfWork
     {
         IUserInfoRepository UsersInfo { get; }
         IRepairRequestRepository RepairRequests { get; }

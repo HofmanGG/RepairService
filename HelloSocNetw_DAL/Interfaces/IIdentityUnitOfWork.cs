@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace HelloSocNetw_DAL.Interfaces
 {
-    public interface IIdentityUnitOfWork: IDisposable
+    public interface IIdentityUnitOfWork
     {
         UserManager<AppIdentityUser> UserManager { get; }
         RoleManager<AppRole> RoleManager { get; }
