@@ -12,9 +12,9 @@ using System.Text;
 
 namespace HelloSocNetw_NUnitTests.BLLTests.ServicesTests
 {
-    public class AutoMoqDataAttribute : AutoDataAttribute
+    public class BLLAutoMoqDataAttribute : AutoDataAttribute
     {
-        public AutoMoqDataAttribute()
+        public BLLAutoMoqDataAttribute()
             : base(() =>
             {
                 var fixture = new Fixture()

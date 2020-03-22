@@ -24,7 +24,7 @@ namespace HelloSocNetw_NUnitTests.BLLTests.Services
             fixture = new Fixture();
         }
 
-        [Theory, AutoMoqData]
+        [Theory, BLLAutoMoqData]
         public async Task GetUserInfoByIdAsync_ValidIdIsGiven_ReturnObjWithTHeSameId(
             UserInfo userInfo,
             Mock<IUserInfoRepository> userInfoRepositoryMock,
