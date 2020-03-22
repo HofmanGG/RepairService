@@ -5,9 +5,10 @@ using AutoMapper;
 using BLL.ModelsDTO;
 using HelloSocNetw_PL.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Moq;
-using PL.Controllers;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace HelloSocNetw_NUnitTests.Config
 {
@@ -28,9 +29,13 @@ namespace HelloSocNetw_NUnitTests.Config
                 mapperMock.Setup(m => m.Map<UserInfoModel>(It.IsAny<UserInfoDTO>()))
                     .Returns<UserInfoDTO>(uid => new UserInfoModel() { UserInfoId = uid.UserInfoId });
 
-                /*fixture.Customize<AccountsController>(customization =>
-                     customization
-                         .With(ac => ac.Url, new Mock<IUrlHelper>() { DefaultValue = DefaultValue.Mock}.Object));*/
+                fixture.Freeze<Mock<HttpContext>>();
+
+                var httpContextMock = fixture.Create<Mock<HttpContext>>();
+                httpContextMock.Setup(hc => hc.Request)
+                    .Returns(fixture.Create<HttpRequest>());
+
+                httpContextMock.DefaultValue = DefaultValue.Empty;
 
                 return fixture;
             })
