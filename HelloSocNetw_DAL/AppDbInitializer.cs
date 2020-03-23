@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HelloSocNetw_DAL.Entities;
 using HelloSocNetw_DAL.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using static HelloSocNetw_DAL.Infrastructure.DALEnums;
 
@@ -11,7 +12,10 @@ namespace HelloSocNetw_DAL
 {
     public static class AppDbInitializer
     {
-        public async static Task SeedAsync(IUnitOfWork uow, IIdentityUnitOfWork identityUow)
+        public async static Task SeedAsync(
+            IUnitOfWork uow,
+            UserManager<AppIdentityUser> userManager,
+            RoleManager<AppRole> roleManager)
         {
             if (await uow.Countries.GetCountOfCountriesAsync() == 0)
             {
@@ -56,7 +60,7 @@ namespace HelloSocNetw_DAL
                 await uow.SaveChangesAsync();
             }
 
-            if (!await identityUow.RoleManager.Roles.AnyAsync())
+            if (!await roleManager.Roles.AnyAsync())
             {
                 var roles = new HashSet<AppRole>()
                 {
@@ -66,16 +70,16 @@ namespace HelloSocNetw_DAL
                 };
 
                 foreach (var role in roles) {
-                    await identityUow.RoleManager.CreateAsync(role);
+                    await roleManager.CreateAsync(role);
                 }
             }
 
-            if (!await identityUow.UserManager.Users.AnyAsync(u => u.Email == "admin@gmail.com"))
+            if (!await userManager.Users.AnyAsync(u => u.Email == "admin@gmail.com"))
             {
                 var adminEmail = "admin@gmail.com";
                 var adminParol = "Qwe!23";
                 var adminUser = new AppIdentityUser() { Email = adminEmail, UserName = adminEmail, EmailConfirmed = true };
-                await identityUow.UserManager.CreateAsync(adminUser, adminParol);
+                await userManager.CreateAsync(adminUser, adminParol);
 
                 var adminInfo = new UserInfo()
                 {
@@ -90,16 +94,16 @@ namespace HelloSocNetw_DAL
                 uow.UsersInfo.AddUserInfo(adminInfo);
                 await uow.SaveChangesAsync();
 
-                await identityUow.UserManager.AddToRoleAsync(adminUser, "Manager");
-                await identityUow.UserManager.AddToRoleAsync(adminUser, "Admin");
+                await userManager.AddToRoleAsync(adminUser, "Manager");
+                await userManager.AddToRoleAsync(adminUser, "Admin");
             }
 
-            if (!await identityUow.UserManager.Users.AnyAsync(u => u.Email == "manager@gmail.com"))
+            if (!await userManager.Users.AnyAsync(u => u.Email == "manager@gmail.com"))
             {
                 var managerEmail = "manager@gmail.com";
                 var amanagerParol = "Qwe!23";
                 var managerUser = new AppIdentityUser() { Email = managerEmail, UserName = managerEmail, EmailConfirmed = true };
-                await identityUow.UserManager.CreateAsync(managerUser, amanagerParol);
+                await userManager.CreateAsync(managerUser, amanagerParol);
 
                 var managerInfo = new UserInfo()
                 {
@@ -114,15 +118,15 @@ namespace HelloSocNetw_DAL
                 uow.UsersInfo.AddUserInfo(managerInfo);
                 await uow.SaveChangesAsync();
 
-                await identityUow.UserManager.AddToRoleAsync(managerUser, "Manager");
+                await userManager.AddToRoleAsync(managerUser, "Manager");
             }
 
-            if (!await identityUow.UserManager.Users.AnyAsync(u => u.Email == "user@gmail.com"))
+            if (!await userManager.Users.AnyAsync(u => u.Email == "user@gmail.com"))
             {
                 var userEmail = "user@gmail.com";
                 var userParol = "Qwe!23";
                 var userUser = new AppIdentityUser() { Email = userEmail, UserName = userEmail, EmailConfirmed = true };
-                await identityUow.UserManager.CreateAsync(userUser, userParol);
+                await userManager.CreateAsync(userUser, userParol);
 
                 var userInfo = new UserInfo()
                 {

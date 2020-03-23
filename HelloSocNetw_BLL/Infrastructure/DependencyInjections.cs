@@ -11,7 +11,6 @@ namespace HelloSocNetw_BLL.Infrastructure
         public static void ConfigureBLLServices(this IServiceCollection services)
         {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<IIdentityUnitOfWork, IdentityUnitOfWork>();
             services.AddScoped<IJWTService, JWTService>();
         }
     }

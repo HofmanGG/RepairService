@@ -90,7 +90,7 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
             sut.Url = urlHelper;
             sut.ControllerContext.HttpContext = httpContext;
 
-            //act
+            //act       
             var response = await sut.SignUp(registerModel);
 
             // assert
