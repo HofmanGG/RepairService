@@ -3,12 +3,11 @@ using HelloSocNetw_BLL.EntitiesDTO;
 using HelloSocNetw_BLL.Infrastructure;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_DAL.Entities;
-using HelloSocNetw_DAL.Infrastructure.Exceptions;
 using HelloSocNetw_DAL.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static HelloSocNetw_DAL.Infrastructure.DALEnums;
+using HelloSocNetw_BLL.Infrastructure.Exceptions;
 
 namespace HelloSocNetw_BLL.Services
 {
@@ -23,92 +22,83 @@ namespace HelloSocNetw_BLL.Services
             _mpr = mapper;
         }
 
-        public async Task<RepairRequestDTO> GetRepairRequestByRepairRequestIdAsync(int repairRequestId)
+        public async Task<RepairRequestDTO> GetRepReqByIdAsync(long repReqId)
         {
-            var repairRequest = await _uow.RepairRequests.GetRepairRequestByRepairRequestIdAsync(repairRequestId);
-            var repairRequestDto = _mpr.Map<RepairRequestDTO>(repairRequest);
-            return repairRequestDto;
+            var repReq = await _uow.RepairRequests.GetRepReqByIdAsync(repReqId);
+            var repReqDto = _mpr.Map<RepairRequestDTO>(repReq);
+            return repReqDto;
         }
 
-        public async Task<IEnumerable<RepairRequestDTO>> GetRepairRequestsByUserInfoIdAsync(int userInfoId)
+        public async Task<IEnumerable<RepairRequestDTO>> GetRepReqsByUserInfoIdAsync(long userInfoId)
         {
-            var repairRequests = await _uow.RepairRequests.GetRepairRequestsByUserInfoIdAsync(userInfoId);
-            var repairRequestsDto = _mpr.Map<IEnumerable<RepairRequestDTO>>(repairRequests);
-            return repairRequestsDto;
+            var repReq = await _uow.RepairRequests.GetRepReqsByUserInfoIdAsync(userInfoId);
+            var repReqDto = _mpr.Map<IEnumerable<RepairRequestDTO>>(repReq);
+            return repReqDto;
         }
 
-        public async Task<IEnumerable<RepairRequestDTO>> GetRepairRequestsByUserInfoIdAndAppIdentityUserIdAsync(int userInfoId, Guid appIdentityUserId)
+        public async Task<IEnumerable<RepairRequestDTO>> GetRepReqsByUserInfoIdAndIdentityIdAsync(long userInfoId, Guid identityId)
         {
-            var repairRequest = await _uow.RepairRequests
-                .GetRepairRequestsAsync(rr => rr.UserInfoId == userInfoId && rr.UserInfo.AppIdentityUserId == appIdentityUserId);
-            var repairRequestDto = _mpr.Map<IEnumerable<RepairRequestDTO>>(repairRequest);
-            return repairRequestDto;
+            var repReq = await _uow.RepairRequests
+                .GetRepReqsAsync(rr => rr.UserInfoId == userInfoId && rr.UserInfo.AppIdentityUserId == identityId);
+            var repReqDto = _mpr.Map<IEnumerable<RepairRequestDTO>>(repReq);
+            return repReqDto;
         }
 
-        public async Task<RepairRequestDTO> GetRepairRequestByRepairRequestIdAndUserInfoIdAsync(int repairRequestId, int userInfoId)
+        public async Task<RepairRequestDTO> GetRepReqByIdAndUserInfoIdAsync(long repReqId, long userInfoId)
         {
-            var repairRequest = await _uow.RepairRequests
-                .GetRepairRequestAsync(rr => rr.RepairRequestId == repairRequestId && rr.UserInfo.UserInfoId == userInfoId);
-            var repairRequestDto = _mpr.Map<RepairRequestDTO>(repairRequest);
-            return repairRequestDto;
+            var repReq = await _uow.RepairRequests
+                .GetRepReqAsync(rr => rr.Id == repReqId && rr.UserInfo.Id == userInfoId);
+            var repReqDto = _mpr.Map<RepairRequestDTO>(repReq);
+            return repReqDto;
         }
 
-        public async Task<int> GetCountOfRepairRequestsByUserInfoIdAsync(int userInfoId)
+        public async Task<long> GetCountOfRepReqsByUserInfoIdAsync(long userInfoId)
         {
-            var count = await _uow.RepairRequests.GetCountOfRepairRequestsByUserInfoIdAsync(userInfoId);
+            var count = await _uow.RepairRequests.GetCountOfRepReqsByUserInfoIdAsync(userInfoId);
             return count;
         }
 
-        public async Task AddRepairRequestAsync(RepairRequestDTO repairRequestDto)
+        public async Task AddRepReqAsync(RepairRequestDTO repReqDto)
         {
-            var repairRequest = _mpr.Map<RepairRequest>(repairRequestDto);
-            repairRequest.RequestTime = DateTime.Now;
+            var repReq = _mpr.Map<RepairRequest>(repReqDto);
+            repReq.RequestTime = DateTime.Now;
 
-            var emailAnon = await _uow.UsersInfo.GetAsync(u => u.UserInfoId == repairRequestDto.UserInfoId, u => new { u.AppIdentityUser.Email });
-            repairRequest.Email = emailAnon.Email;
+            _uow.RepairRequests.AddRepReq(repReq);
 
-            _uow.RepairRequests.AddRepairRequest(repairRequest);
             var rowsAffected = await _uow.SaveChangesAsync();
             if (rowsAffected != 1)
                 throw new DBOperationException("Repair request deleting went wrong");
         }
 
-        public async Task UpdateRepairRequestAsync(RepairRequestDTO newRepairRequestInfoDto)
+        public async Task UpdateRepReqAsync(RepairRequestDTO repReqDto)
         {
-            var repairRequestToChange = await _uow.RepairRequests
-                .GetRepairRequestAsync(rr => rr.RepairRequestId == newRepairRequestInfoDto.RepairRequestId &&
-                rr.UserInfoId == newRepairRequestInfoDto.UserInfoId);
+            await ThrowIfSuchRepReqExistsAsync(repReqDto.Id, repReqDto.UserInfoId);
 
-            if (repairRequestToChange == null)
-                throw new NotFoundException(nameof(RepairRequest), newRepairRequestInfoDto.RepairRequestId);
+            var repReq = _mpr.Map<RepairRequest>(repReqDto);
 
-            repairRequestToChange.RepairStatus = (DALRepairStatusType)(int)newRepairRequestInfoDto.RepairStatus;
-            repairRequestToChange.ProductName = newRepairRequestInfoDto.ProductName;
-            repairRequestToChange.Comment = newRepairRequestInfoDto.Comment;
-
-            _uow.RepairRequests.UpdateRepairRequestAsync(repairRequestToChange);
+            await _uow.RepairRequests.UpdateRepReqAsync(repReq);
+             
             var rowsAffected = await _uow.SaveChangesAsync();
             if (rowsAffected != 1)
                 throw new DBOperationException("Repair request updating went wrong");
         }
 
-        public async Task DeleteRepairRequestByRepairRequestIdAsync(int repairRequestId)
+        private async Task ThrowIfSuchRepReqExistsAsync(long repReqId, long userInfoId)
+        {   
+            var repReqExists = await _uow.RepairRequests.RepReqExistsByIdAndUserInfoIdAsync(repReqId, userInfoId);
+            if (!repReqExists)
+                throw new NotFoundException(nameof(RepairRequest), repReqId);
+        }
+
+        public async Task DeleteRepReqByIdAndUserInfoIdAsync(long repReqId, long userInfoId)
         {
-            await _uow.RepairRequests.DeleteRepairRequestByRepairRequestIdAsync(repairRequestId);
+            await ThrowIfSuchRepReqExistsAsync(repReqId, userInfoId);
+
+            await _uow.RepairRequests.DeleteRepReqByIdAsync(repReqId);
+
             var rowsAffected =  await _uow.SaveChangesAsync();
             if (rowsAffected != 1)
                 throw new DBOperationException("Repair request deleting went wrong");   
-        }
-
-        public async Task<bool> RepairRequestExistsAsync(int repairRequestId)
-        {
-            return await _uow.RepairRequests.RepairRequestExistsAsync(repairRequestId);
-        }
-
-        public async Task<bool> RepairRequestWithSuchRepairRequestIdAndUserInfoIdExistsAsync(int repairRequestId, int userInfoId)
-        {
-            return await _uow.RepairRequests
-                .RepairRequestExistsAsync(rr => rr.RepairRequestId == repairRequestId && rr.UserInfoId == userInfoId);
         }
     }
 }

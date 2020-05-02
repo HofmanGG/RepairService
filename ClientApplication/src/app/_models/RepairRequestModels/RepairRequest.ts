@@ -1,5 +1,5 @@
 export interface RepairRequest {
-  repairRequestId: number;
+  id: number;
 
   productName: string;
   comment: string;

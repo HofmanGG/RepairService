@@ -1,5 +1,5 @@
-﻿using HelloSocNetw_DAL.Entities;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using HelloSocNetw_DAL.Entities.IdentityEntities;
 
 namespace HelloSocNetw_BLL.Interfaces
 {

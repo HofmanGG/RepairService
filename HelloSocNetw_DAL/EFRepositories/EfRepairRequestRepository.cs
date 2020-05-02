@@ -1,36 +1,37 @@
 ﻿using HelloSocNetw_DAL.Entities;
-using HelloSocNetw_DAL.Infrastructure;
-using HelloSocNetw_DAL.Infrastructure.Exceptions;
-using HelloSocNetw_DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using HelloSocNetw_DAL.Interfaces.Repositories;
+using HelloSocNetw_DAL.Interfaces.Services;
 
 namespace HelloSocNetw_DAL.EFRepositories
 {
     public class EfRepairRequestRepository: IRepairRequestRepository
     {
+        private readonly IIncludesParser _includesParser;
         private readonly SocNetwContext _context;
-        private readonly IIncludesParser<RepairRequest> _includesParser;
+        private readonly DbSet<RepairRequest> _repairRequests;
 
-        public EfRepairRequestRepository(DbContext dbContext, IIncludesParser<RepairRequest> includesParser)
+        public EfRepairRequestRepository(SocNetwContext dbContext, IIncludesParser includesParser)
         {
-            _context = dbContext as SocNetwContext;
+            _context = dbContext;
             _includesParser = includesParser;
+            _repairRequests = _context.RepairRequests;
         }
 
-        public async Task<RepairRequest> GetRepairRequestByRepairRequestIdAsync(int repairRequestId)
+        public async Task<RepairRequest> GetRepReqByIdAsync(long repReqId)
         {
-            var repairRequest = await _context.RepairRequests.FindAsync(repairRequestId);
-            return repairRequest;
+            var repReq = await _repairRequests.FindAsync(repReqId);
+            return repReq;
         }
 
-        public async Task<RepairRequest> GetRepairRequestAsync(Expression<Func<RepairRequest, bool>> filter, string includeProperties = "")
+        public async Task<RepairRequest> GetRepReqAsync(Expression<Func<RepairRequest, bool>> filter, string includeProperties = "")
         {
-            var query = _context.RepairRequests.AsQueryable();
+            var query = _repairRequests.AsQueryable();
 
             if (filter != null)
             {
@@ -42,12 +43,12 @@ namespace HelloSocNetw_DAL.EFRepositories
             return await query.FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<RepairRequest>> GetRepairRequestsAsync(
+        public async Task<IEnumerable<RepairRequest>> GetRepReqsAsync(
             Expression<Func<RepairRequest, bool>> filter = null,
             Func<IQueryable<RepairRequest>, IOrderedQueryable<RepairRequest>> orderBy = null,
             string includeProperties = "")
         {
-            var query = _context.RepairRequests.AsQueryable();
+            var query = _repairRequests.AsQueryable();
 
             if (filter != null)
             {
@@ -68,48 +69,53 @@ namespace HelloSocNetw_DAL.EFRepositories
 
         public async Task<TType> GetAsync<TType>(Expression<Func<RepairRequest, bool>> where, Expression<Func<RepairRequest, TType>> select) where TType : class
         {
-            return await _context.RepairRequests.Where(where).Select(select).FirstOrDefaultAsync();
+            return await _repairRequests.Where(where).Select(select).FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<RepairRequest>> GetRepairRequestsByUserInfoIdAsync(int userInfoId)
+        public async Task<IEnumerable<RepairRequest>> GetRepReqsByUserInfoIdAsync(long userInfoId)
         {
-            var repairRequests = await _context.RepairRequests.Where(r => r.UserInfoId == userInfoId).ToListAsync();
-            return repairRequests;
+            var repReqs = await _repairRequests.Where(r => r.UserInfoId == userInfoId).ToListAsync();
+            return repReqs;
         }
 
-        public async Task<int> GetCountOfRepairRequestsByUserInfoIdAsync(int userInfoId)
+        public async Task<long> GetCountOfRepReqsByUserInfoIdAsync(long userInfoId)
         {
-           var count = await _context.RepairRequests.Where(r => r.UserInfoId == userInfoId).CountAsync();
+           var count = await _repairRequests.Where(r => r.UserInfoId == userInfoId).CountAsync();
            return count;
         }
 
-        public void AddRepairRequest(RepairRequest repairRequestToAdd)
+        public void AddRepReq(RepairRequest repReqToAdd)
         {
-            _context.RepairRequests.Add(repairRequestToAdd);
+            _repairRequests.Add(repReqToAdd);
         }
 
-        public void UpdateRepairRequestAsync(RepairRequest repairRequestToChange)
+        public async Task UpdateRepReqAsync(RepairRequest repReq)
         {
-            _context.RepairRequests.Update(repairRequestToChange);
+            var repReqToChange = await _repairRequests.FindAsync(repReq.Id);
+
+            repReqToChange.RepairStatus = repReq.RepairStatus;
+            repReqToChange.ProductName = repReq.ProductName;
+            repReqToChange.Comment = repReq.Comment;
         }
 
-        public async Task DeleteRepairRequestByRepairRequestIdAsync(int repairRequestId)
+        public async Task DeleteRepReqByIdAsync(long repReqId)
         {
-            var repairRequestToDelete = await _context.RepairRequests.FindAsync(repairRequestId);
-            if (repairRequestToDelete == null)
-                throw new NotFoundException(nameof(RepairRequest), repairRequestId);
-
-            _context.RepairRequests.Remove(repairRequestToDelete);
+            var repReqToDelete = await _repairRequests.FindAsync(repReqId);
+            _repairRequests.Remove(repReqToDelete);
         }
             
-        public async Task<bool> RepairRequestExistsAsync(int repairRequestId)
+        public async Task<bool> RepReqExistsByIdAsync(long repReqId)
         {
-            return await _context.RepairRequests.AnyAsync(r => r.RepairRequestId == repairRequestId);
+            var repReqExists =  await _repairRequests.AnyAsync(rr => rr.Id == repReqId);
+            return repReqExists;
         }
 
-        public async Task<bool> RepairRequestExistsAsync(Expression<Func<RepairRequest, bool>> where)
+        public async Task<bool> RepReqExistsByIdAndUserInfoIdAsync(long repReqId, long userInfoId)
         {
-            return await _context.RepairRequests.AnyAsync(where);
+            var repReqExists =
+                await _repairRequests.AnyAsync(rr => rr.Id == repReqId && rr.UserInfoId == userInfoId);
+
+            return repReqExists;
         }
     }
 }

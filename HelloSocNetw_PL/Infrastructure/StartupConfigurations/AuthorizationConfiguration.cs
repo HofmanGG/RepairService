@@ -4,9 +4,11 @@ namespace HelloSocNetw_PL.Infrastructure.StartupConfigurations
 {
     public static class AuthorizationConfiguration
     {
-        public static void AddConfiguredAuthorization(this IServiceCollection services)
+        public static IServiceCollection AddConfiguredAuthorization(this IServiceCollection services)
         {
             services.AddAuthorizationCore();
+
+            return services;
         }
     }
 }

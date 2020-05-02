@@ -29,7 +29,7 @@ export class UpdateCountryComponent implements OnInit {
 
   ngOnInit() {
     this.updateCountryForm = this.formBuilder.group({
-      countryId: ['', Validators.required],
+      id: ['', Validators.required],
       countryName: ['', [
         Validators.required,
         Validators.minLength(2),
@@ -51,7 +51,7 @@ export class UpdateCountryComponent implements OnInit {
 
     this.loading = true;
 
-    this.countryService.updateCountry (this.updateCountryForm.value.countryId, this.updateCountryForm.value)
+    this.countryService.updateCountry (this.updateCountryForm.value.id, this.updateCountryForm.value)
       .pipe(first())
         .subscribe(
         data => {

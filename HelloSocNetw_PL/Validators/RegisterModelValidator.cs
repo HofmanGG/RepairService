@@ -4,7 +4,7 @@ using HelloSocNetw_PL.Models;
 
 namespace HelloSocNetw_PL.Validators
 {
-    public class RegisterModelValidator:AbstractValidator<RegisterModel>
+    public class RegisterModelValidator: AbstractValidator<RegisterModel>
     {
         public RegisterModelValidator()
         {

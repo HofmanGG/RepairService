@@ -1,7 +1,7 @@
-﻿using HelloSocNetw_DAL.Entities;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using System;
+using HelloSocNetw_DAL.Entities.IdentityEntities;
 
 namespace HelloSocNetw_DAL.Identity
 {

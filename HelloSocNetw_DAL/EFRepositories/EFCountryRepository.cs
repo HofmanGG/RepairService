@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using HelloSocNetw_DAL.Entities;
-using HelloSocNetw_DAL.Infrastructure;
-using HelloSocNetw_DAL.Infrastructure.Exceptions;
-using HelloSocNetw_DAL.Interfaces;
+using HelloSocNetw_DAL.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace HelloSocNetw_DAL.EFRepositories
@@ -14,69 +9,60 @@ namespace HelloSocNetw_DAL.EFRepositories
     public class EfCountryRepository : ICountryRepository
     {
         private readonly SocNetwContext _context;
+        private readonly DbSet<Country> _countries;
 
-        public EfCountryRepository(DbContext dbContext)
+        public EfCountryRepository(SocNetwContext dbContext)
         {
-            _context = dbContext as SocNetwContext;
+            _context = dbContext;
+            _countries = _context.Countries;
         }
 
-        public async Task<Country> GetCountryByIdAsync(int countryId)
+        public async Task<Country> GetCountryByIdAsync(long countryId)
         {
-            return await _context.Countries.FindAsync(countryId);
+            var foundCountry =  await _countries.FindAsync(countryId);
+            return foundCountry;
         }
 
         public async Task<IEnumerable<Country>> GetCountriesAsync()
         {
-            return await _context.Countries.ToListAsync();
+            var countries =  await _countries.ToListAsync();
+            return countries;
         }
 
-        public async Task<int> GetCountOfCountriesAsync()
+        public async Task<long> GetCountOfCountriesAsync()
         {
-            return await _context.Countries.CountAsync();
+            var count =  await _countries.CountAsync();
+            return count;
         }
 
         public void AddCountry(Country country)
         {
-            _context.Countries.Add(country);
+            _countries.Add(country);
         }
 
-        public void AddCountries(IEnumerable<Country> countries)
+        public async Task DeleteCountryByIdAsync(long countryId)
         {
-            _context.Countries.AddRange(countries);
+            var countryToDelete = await _countries.FindAsync(countryId);
+            _countries.Remove(countryToDelete);
         }
 
-        public void DeleteCountry(Country country)
+        public async Task UpdateCountryAsync(Country country)
         {
-            _context.Countries.Remove(country);
+            var countryToUpdate = await _countries.FindAsync(country.Id);
+
+            countryToUpdate.CountryName = country.CountryName;
         }
 
-        public async Task DeleteCountryByIdAsync(int countryId)
+        public async Task<bool> CountryExistsByIdAsync(long countryId)
         {
-            var countryToDelete = await _context.Countries.FindAsync(countryId);
-            if (countryToDelete == null)
-                throw new NotFoundException(nameof(Country), countryId);
-
-            _context.Countries.Remove(countryToDelete);
+            var countryExists = await _countries.AnyAsync(u => u.Id == countryId);
+            return countryExists;
         }
 
-        public void DeleteCountries(IEnumerable<Country> country)
+        public async Task<bool> CountryExistsByNameAsync(string name)
         {
-            _context.Countries.RemoveRange(country);
-        }
-
-        public void UpdateCountryAsync(Country countryToUpdate) 
-        {
-            _context.Update(countryToUpdate);
-        }
-
-        public async Task<bool> CountryExistsAsyncByCountryId(int countryId)
-        {
-            return await _context.Countries.AnyAsync(u => u.CountryId == countryId);
-        }
-
-        public async Task<bool> CountryExistsAsync(Expression<Func<Country, bool>> where)
-        {
-            return await _context.Countries.AnyAsync(where);
+            var countryExists = await _countries.AnyAsync(c => c.CountryName == name);
+            return countryExists;
         }
     } 
 }

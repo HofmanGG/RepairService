@@ -1,8 +1,8 @@
-﻿namespace HelloSocNetw_PL.Models
+﻿namespace HelloSocNetw_PL.Models.CountryModels
 {
     public class CountryModel
     {
-        public int CountryId { get; set; }
+        public long Id { get; set; }
 
         public string CountryName { get; set; }
     }

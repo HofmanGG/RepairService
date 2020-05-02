@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using HelloSocNetw_BLL.EntitiesDTO;
 using HelloSocNetw_DAL.Entities;
-using System;
+using HelloSocNetw_DAL.Entities.IdentityEntities;
 
 namespace HelloSocNetw_BLL.Infrastructure.MapperProfiles
 {

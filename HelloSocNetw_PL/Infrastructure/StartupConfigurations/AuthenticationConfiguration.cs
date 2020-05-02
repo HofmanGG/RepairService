@@ -1,13 +1,16 @@
-﻿using HelloSocNetw_BLL.Infrastructure;
+﻿using System.Collections;
+using System.Collections.Generic;
+using Castle.Components.DictionaryAdapter;
+using HelloSocNetw_BLL.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace HelloSocNetw_PL.Infrastructure
+namespace HelloSocNetw_PL.Infrastructure.StartupConfigurations
 {
     public static class AuthenticationConfiguration
     {
-        public static void AddConfiguredAuthentication(this IServiceCollection services)
+        public static IServiceCollection AddConfiguredAuthentication(this IServiceCollection services)
         {
             services.AddAuthentication(options =>
             {
@@ -30,6 +33,8 @@ namespace HelloSocNetw_PL.Infrastructure
                     ValidateIssuerSigningKey = true
                 };
             });
+
+            return services;
         }
     }
 }

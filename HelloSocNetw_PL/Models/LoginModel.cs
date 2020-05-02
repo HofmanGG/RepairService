@@ -1,6 +1,4 @@
-﻿using HelloSocNetw_PL.Validators;
-
-namespace HelloSocNetw_PL.Models
+﻿namespace HelloSocNetw_PL.Models
 {
     public class LoginModel
     {

@@ -2,22 +2,17 @@
 using HelloSocNetw_BLL.EntitiesDTO;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_PL.Infrastructure;
-using HelloSocNetw_PL.Infrastructure.Interfaces;
-using HelloSocNetw_PL.Models;
+using HelloSocNetw_PL.Interfaces;
 using HelloSocNetw_PL.Models.CountryModels;
-using HelloSocNetw_PL.Validators;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace HelloSocNetw_PL.Controllers
 {
-    [Authorize(Roles = "Admin")]
     public class CountriesController : ApiController
     {
         private readonly ICountryService _countrySvc;
@@ -48,7 +43,7 @@ namespace HelloSocNetw_PL.Controllers
         ///     }
         ///
         /// </remarks>
-        /// <response code="200">Returnes all countries</response>
+        /// <response code="200">Returns all countries</response>
         /// <response code="500">If an exception on server is thrown</response>
         [HttpGet]
         [ResponseCache(Duration = 3600)]
@@ -101,14 +96,14 @@ namespace HelloSocNetw_PL.Controllers
         ///
         /// </remarks>
         /// <response code="204">If country successfully changed</response>
-        /// <response code="400">If countryModel is not valid or countryModel.CountryId = id</response>
-        /// <response code="404">If country with such id doesnot exist</response>
+        /// <response code="400">If countryModel is not valid or countryModel.Id = id</response>
+        /// <response code="404">If country with such id doesn't exist</response>
         /// <response code="500">If an exception on server is thrown</response>
         [HttpPut("{countryId}")]
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(404), ProducesResponseType(409)]
-        public async Task<IActionResult> UpdateCountry(int countryId, UpdateCountryModel countryModel)
+        public async Task<IActionResult> UpdateCountry(long countryId, UpdateCountryModel countryModel)
         {
-            if (countryId != countryModel.CountryId)
+            if (countryId != countryModel.Id)
                 return BadRequest();
 
             var newCountryInfo = _mpr.Map<CountryDTO>(countryModel);
@@ -130,13 +125,13 @@ namespace HelloSocNetw_PL.Controllers
         /// </remarks>
         /// <response code="204">If country successfully deleted</response>
         /// <response code="400">If country is not deleted</response>
-        /// <response code="404">If country with such id doesnot exist</response>
+        /// <response code="404">If country with such id doesn't exist</response>
         /// <response code="500">If an exception on server is thrown</response>
         [HttpDelete("{countryId}")]
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(404)]
-        public async Task<IActionResult> DeleteCountry(int countryId)
+        public async Task<IActionResult> DeleteCountry(long countryId)
         {
-            await _countrySvc.DeleteCountryByCountryIdAsync(countryId);
+            await _countrySvc.DeleteCountryByIdAsync(countryId);
 
             return NoContent();
         }

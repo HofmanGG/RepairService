@@ -4,18 +4,15 @@ using AutoMapper;
 using BLL.ModelsDTO;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_PL.Infrastructure;
-using HelloSocNetw_PL.Infrastructure.Interfaces;
+using HelloSocNetw_PL.Interfaces;
 using HelloSocNetw_PL.Models;
 using HelloSocNetw_PL.Models.UserInfoModels;
-using HelloSocNetw_PL.Validators;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace PL.Controllers
+namespace HelloSocNetw_PL.Controllers
 {
-    [AllowAnonymous]
     public class AccountsController : ApiController
     {
         private readonly IIdentityUserService _identitySvc;
@@ -67,20 +64,32 @@ namespace PL.Controllers
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(409)]
         public async Task<IActionResult> SignUp(RegisterModel registerModel)
         {
-            var userInfoDto = _mpr.Map<UserInfoDTO>(registerModel);
-            await _identitySvc.CreateAccountAsync(userInfoDto, registerModel.Email, registerModel.Email, registerModel.Password);
+            var email = registerModel.Email;
+            var password = registerModel.Password;
 
-            var code = await _identitySvc.GenerateEmailConfirmationTokenAsyncByEmail(registerModel.Email);
-            var callbackUrl = Url.Action(
-                "ConfirmEmail",
-                "Accounts",
-                new { registerModel.Email, code },
-                protocol: HttpContext.Request.Scheme);
+            var userInfoDto = _mpr.Map<UserInfoDTO>(registerModel);
+
+            await _identitySvc.CreateAccountAsync(userInfoDto, email, email, password);
+
+            var token = await _identitySvc.GenerateEmailConfirmationTokenAsyncByEmail(email);
+
+            var callbackUrl = CreateCallbackUrl(email, token);
 
             await _emailSender.SendEmailAsync("samko.2000@ukr.net", "Confirm your account",
                 $"Подтвердите регистрацию, перейдя по ссылке: <a href='{callbackUrl}'>link</a>");
 
             return NoContent();
+        }
+
+        private string CreateCallbackUrl(string email, string token)
+        {
+            var url = Url.Action(
+                "ConfirmEmail",
+                "Accounts",
+                new { email, token },
+                protocol: HttpContext.Request.Scheme);
+
+            return url;
         }
 
         /// <summary>
@@ -100,67 +109,28 @@ namespace PL.Controllers
         /// <response code="400">If loginModel is not valid</response>
         /// <response code="401">If wrong password or email</response>
         /// <response code="403">If email is not confirmed</response>
-        /// <response code="404">If account is bloked</response>
+        /// <response code="404">If account is blocked</response>
         /// <response code="500">If an exception on server is thrown</response>
         [HttpPost("signin")]
         [ProducesResponseType(200), ProducesResponseType(400), ProducesResponseType(401), ProducesResponseType(403), ProducesResponseType(404)]
         public async Task<ActionResult<UserInfoModel>> SignIn(LoginModel loginModel)
         {
-            var appIdentityUserDto = await _identitySvc.Authenticate(loginModel.Email, loginModel.Password);
-            if (appIdentityUserDto == null)
+            var identityUserDto = await _identitySvc.Authenticate(loginModel.Email, loginModel.Password);
+            if (identityUserDto == null)
                 return Unauthorized();
 
-            var isEmailConfirmed = await _identitySvc.IsEmailConfirmedAsync(appIdentityUserDto);
+            var isEmailConfirmed = await _identitySvc.IsEmailConfirmedAsync(identityUserDto);
             if (!isEmailConfirmed)
                 return Forbid();
 
-            var isUserLockedOut = await _identitySvc.IsLockedOutByEmailAsync(appIdentityUserDto);
+            var isUserLockedOut = await _identitySvc.IsLockedOutByEmailAsync(identityUserDto);
             if (isUserLockedOut)
                 return NotFound();
 
-            var userInfoDto = await _identitySvc.GetUserInfoWithTokenAsync(appIdentityUserDto);
+            var userInfoDto = await _identitySvc.GetUserInfoWithTokenAsync(identityUserDto);
             var userInfoModel = _mpr.Map<UserInfoModel>(userInfoDto);
 
             return userInfoModel;
-        }
-
-        //не используется, заменен на UserController.ChangeUserInfo
-        /// <summary>
-        /// Changes accounts info
-        /// </summary>
-        /// <remarks>
-        /// Sample request:
-        ///
-        ///     POST /changeinfo
-        ///     {
-        ///        "firstName": "Jason",
-        ///        "lastName": "Smith",
-        ///        "gender": "Male",
-        ///        "countryId": 13,
-        ///        "dayOfBirth": 11,
-        ///        "monthOfBirth": 5,
-        ///        "yearOfBirth": 2000
-        ///     }
-        ///
-        /// </remarks>
-        /// <response code="200">Returnes changed accounts info</response>
-        /// <response code="400">If userInfoModel is not valid</response>
-        /// <response code="500">If an exception on server is thrown</response>
-        [HttpPost("changeinfo")]
-        [Authorize]
-        [ProducesResponseType(200), ProducesResponseType(400)]
-        public async Task<ActionResult<UserInfoModel>> ChangeUserInfo(UpdateUserInfoModel userInfoModel)
-        {
-            var authorizedUserId = _curUserSvc.UserId;
-
-            var userInfoDto = _mpr.Map<UserInfoDTO>(userInfoModel);
-            userInfoDto.AppIdentityUserId = authorizedUserId;
-            await _identitySvc.UpdateUserInfoAsync(userInfoDto);
-
-            var changedUserInfoDto = await _identitySvc.GetUserInfoByAppIdentityIdAsync(authorizedUserId);
-            var changedUserInfoModel = _mpr.Map<UserInfoModel>(changedUserInfoDto);
-
-            return changedUserInfoModel;
         }
 
         /// <summary>
@@ -176,15 +146,15 @@ namespace PL.Controllers
         ///     }
         ///
         /// </remarks>
-        /// <response code="302">Redirectes to login page</response>
+        /// <response code="302">Redirects to login page</response>
         /// <response code="500">If an exception on server is thrown</response>'
         /// 
         [HttpDelete("{appIdentityUserId}")]
         [Authorize(Roles = "Manager, Admin")]
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(404)]
-        public async Task<IActionResult> DeleteAccount(Guid appIdentityUserId)
+        public async Task<IActionResult> DeleteAccount(Guid identityUserId)
         {
-            await _identitySvc.DeleteAccountByAppIdentityUserIdAsync(appIdentityUserId);
+            await _identitySvc.DeleteAccountByIdentityIdAsync(identityUserId);
 
             return NoContent();
         }
@@ -202,7 +172,7 @@ namespace PL.Controllers
         ///     }
         ///
         /// </remarks>
-        /// <response code="302">Redirectes to login page</response>
+        /// <response code="302">Redirects to login page</response>
         /// <response code="500">If an exception on server is thrown</response>'
         ///
         [HttpGet("confirmemail")]

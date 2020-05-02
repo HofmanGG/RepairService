@@ -1,7 +1,6 @@
-﻿using HelloSocNetw_PL.Infrastructure.Interfaces;
+﻿using HelloSocNetw_PL.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System;
-using System.Linq;
 using System.Security.Claims;
 
 namespace HelloSocNetw_PL.Infrastructure.Services
@@ -10,10 +9,11 @@ namespace HelloSocNetw_PL.Infrastructure.Services
     {
         public CurrentUserService(IHttpContextAccessor httpContextAccessor)
         {
-            string userId = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Name);
-            UserId = (userId != null) ? new Guid(userId) : Guid.Empty;
+            var stringUserId = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Name);
+            UserId = stringUserId != null ? new Guid(stringUserId) : Guid.Empty;
         }
 
         public Guid UserId { get; }
     }
 }
+    

@@ -6,14 +6,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Events;
 using System;
+using System.Threading.Tasks;
+using HelloSocNetw_DAL.Interfaces.Identity;
 
 namespace HelloSocNetw_PL
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
@@ -28,9 +29,30 @@ namespace HelloSocNetw_PL
             try
             {
                 Log.Information("Application Starting Up");
-                CreateHostBuilder(args).Build().Run();
+                var host = CreateHostBuilder(args).Build();
+
+                using (var scope = host.Services.CreateScope())
+                {
+                    var services = scope.ServiceProvider;
+
+                    try
+                    {
+                        var uow = services.GetRequiredService<IUnitOfWork>();
+                        var userManager = services.GetRequiredService<IUserManager>();
+                        var roleManager = services.GetRequiredService<IRoleManager>();
+
+                        await AppDbInitializer.SeedAsync(uow, userManager, roleManager);
+                    }
+                    catch (Exception ex)
+                    {
+                        var logger = services.GetRequiredService<ILogger<Program>>();
+                        logger.LogError(ex, "An error occurred while seeding the database.");
+                    }
+                }
+
+                await host.RunAsync();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.Fatal(ex, "The application failed to start correctly");
             }
@@ -38,6 +60,7 @@ namespace HelloSocNetw_PL
             {
                 Log.CloseAndFlush();
             }
+
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

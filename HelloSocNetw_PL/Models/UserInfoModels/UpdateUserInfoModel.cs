@@ -1,23 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using static HelloSocNetw_PL.Infrastructure.PLEnums;
+using HelloSocNetw_PL.Infrastructure.Enums;
 
 namespace HelloSocNetw_PL.Models.UserInfoModels
 {
     public class UpdateUserInfoModel
     {
-        public int UserInfoId { get; set; }
+        public long Id { get; set; }
 
         public Guid AppIdentityUserId { get; set; }
 
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
-        public PLGenderType Gender { get; set; }
+        public PLEnums.PLGenderType Gender { get; set; }
 
-        public int CountryId { get; set; }
+        public long CountryId { get; set; }
 
         public int DayOfBirth { get; set; }
         public int MonthOfBirth { get; set; }

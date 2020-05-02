@@ -2,15 +2,15 @@
     <h4>Update Country</h4>
     <div class="form-row">
         <div class="form-group col-md-6">
-            <mat-select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()" onblur="this.size=0;" class="form-control" formControlName="countryId"
-                [ngClass]="{ 'is-invalid': submitted && f.countryId.errors }">
+            <mat-select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()" onblur="this.size=0;" class="form-control" formControlName="id"
+                [ngClass]="{ 'is-invalid': submitted && f.id.errors }">
                 <mat-option value="" disabled>Choose country</mat-option>
-                <mat-option *ngFor="let country of countryService.countries | async" [value]="country.countryId">
+                <mat-option *ngFor="let country of countryService.countries | async" [value]="country.id">
                     {{country.countryName}}
                 </mat-option>
             </mat-select>
-            <div *ngIf="submitted && f.countryId.errors" class="invalid-feedback">
-                <div *ngIf="f.countryId.errors.required">Country is required</div>
+            <div *ngIf="submitted && f.id.errors" class="invalid-feedback">
+                <div *ngIf="f.id.errors.required">Country is required</div>
             </div>
         </div>
         <div class="form-group col-md-6">

@@ -1,22 +1,19 @@
-﻿using HelloSocNetw_DAL.Entities;
+﻿using HelloSocNetw_DAL.Entities.IdentityEntities;
 using HelloSocNetw_DAL.Identity;
-using HelloSocNetw_DAL.Interfaces;
+using HelloSocNetw_DAL.Infrastructure.Services;
+using HelloSocNetw_DAL.Interfaces.Services;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HelloSocNetw_DAL.Infrastructure
 {
     public static class DependencyInjections
     {
-        public static void ConfigureDALServices(this IServiceCollection services)
+        public static IServiceCollection ConfigureDALServices(this IServiceCollection services)
         {
             services.AddIdentityCore<AppIdentityUser>()
                 .AddRoles<AppRole>()
                 .AddEntityFrameworkStores<SocNetwContext>()
-                .AddRoleManager<AppRoleManager>()
-                .AddUserManager<AppUserManager>()
                 .AddUserStore<AppUserStore>()
                 .AddRoleStore<AppRoleStore>()
                 .AddDefaultTokenProviders();
@@ -33,7 +30,10 @@ namespace HelloSocNetw_DAL.Infrastructure
                 options.User.RequireUniqueEmail = true;
             });
 
-            services.AddScoped<IIncludesParserFactory, IncludesParserFactory>();
+            services.AddScoped<IIncludesParser, IncludesParser>();
+            services.AddScoped<IDateService, DateService>();
+
+            return services;
         }
     }
 }

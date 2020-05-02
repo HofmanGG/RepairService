@@ -4,13 +4,12 @@ using System.Threading.Tasks;
 using AutoMapper;
 using BLL.ModelsDTO;
 using HelloSocNetw_BLL.Infrastructure;
+using HelloSocNetw_BLL.Infrastructure.Exceptions;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_DAL.Entities;
-using HelloSocNetw_DAL.Infrastructure.Exceptions;
 using HelloSocNetw_DAL.Interfaces;
-using static HelloSocNetw_DAL.Infrastructure.DALEnums;
 
-namespace BLL.Services
+namespace HelloSocNetw_BLL.Services
 {
     public class UserInfoService: IUserInfoService
     {
@@ -23,21 +22,20 @@ namespace BLL.Services
             _mpr = mapper;
         }
 
-        public async Task<UserInfoDTO> GetUserInfoByUserInfoIdAsync(int id)
+        public async Task<UserInfoDTO> GetUserInfoByIdAsync(long userInfoId)
         {
-            var userInfo = await _uow.UsersInfo.GetUserInfoByUserInfoIdAsync(id);
-            if(userInfo == null)
-                return null;
+            var userInfo = await _uow.UsersInfo.GetUserInfoByIdAsync(userInfoId);
+            if (userInfo == null)
+                throw new NotFoundException(nameof(UserInfo), userInfoId);
 
             var userInfoDto = _mpr.Map<UserInfoDTO>(userInfo);
             return userInfoDto;
         }
 
-        public async Task<UserInfoDTO> GetUserInfoByAppIdentityIdAsync(Guid appIdentityUserId)
+        public async Task<UserInfoDTO> GetUserInfoByIdentityIdAsync(Guid appIdentityUserId)
         {
-            var userInfo = await _uow.UsersInfo.GetUserInfoByAppIdentityIdAsync(appIdentityUserId);
+            var userInfo = await _uow.UsersInfo.GetUserInfoByIdentityIdAsync(appIdentityUserId);
             var userInfoDto = _mpr.Map<UserInfoDTO>(userInfo);
-
             return userInfoDto;
         }
 
@@ -48,59 +46,49 @@ namespace BLL.Services
             return usersInfoDto;
         }
 
-        public async Task<int> GetCountOfUsersInfoAsync()
-        {
-            return await _uow.UsersInfo.GetCountOfUsersInfoAsync();
+        public async Task<long> GetCountOfUsersInfoAsync()
+        { 
+            var count = await _uow.UsersInfo.GetCountOfUsersInfoAsync();
+            return count;
         }
 
-        public async Task<int> GetUserInfoIdByEmailAsync(string email)
+        public async Task<long> GetUserInfoIdByEmailAsync(string email)
         {
-            var userInfoWithIdAnon = await _uow.UsersInfo.GetAsync(u => u.AppIdentityUser.Email == email, x => new { x.UserInfoId });
-            return userInfoWithIdAnon.UserInfoId;
+            var userInfo = await _uow.UsersInfo.GetUserInfoByEmailAsync(email);
+            if (userInfo == null)
+            {
+                throw new NotFoundException(nameof(UserInfo), email);
+            }
+
+            return userInfo.Id;
         }
 
         public async Task AddUserInfoAsync(UserInfoDTO userInfoDto)
         {
             var userInfo = _mpr.Map<UserInfo>(userInfoDto);
+
             _uow.UsersInfo.AddUserInfo(userInfo);
+
             var rowsAffected = await _uow.SaveChangesAsync();
             if (rowsAffected != 1)
                 throw new DBOperationException("User info creating went wrong");
         }
 
-        public async Task UpdateUserInfoAsync(UserInfoDTO newUserInfoDto)
+        public async Task UpdateUserInfoAsync(UserInfoDTO userInfoDto)
         {
-            var userInfoToChange = await _uow.UsersInfo
-                .GetUserInfoAsync(u => u.UserInfoId == newUserInfoDto.UserInfoId &&
-                u.AppIdentityUserId == newUserInfoDto.AppIdentityUserId);
+            var doesUserInfoToChangeExist = await _uow.UsersInfo
+                .UserInfoExistsByIdAndIdentityIdAsync(userInfoDto.Id, userInfoDto.AppIdentityUserId);
 
-            if (userInfoToChange == null)
-                throw new NotFoundException(nameof(UserInfo), newUserInfoDto.UserInfoId);
+            if (!doesUserInfoToChangeExist)
+                throw new NotFoundException(nameof(UserInfo), userInfoDto.Id);
 
-            userInfoToChange.CountryId = newUserInfoDto.CountryId;
-            userInfoToChange.Gender = (DALGenderType)(int)newUserInfoDto.Gender;
-            userInfoToChange.DateOfBirth = newUserInfoDto.DateOfBirth;
-            userInfoToChange.FirstName = newUserInfoDto.FirstName;
-            userInfoToChange.LastName = newUserInfoDto.LastName;
+            var userInfo = _mpr.Map<UserInfo>(userInfoDto);
 
-            _uow.UsersInfo.UpdateUserInfo(userInfoToChange);
+            await _uow.UsersInfo.UpdateUserInfoAsync(userInfo);
+
             var rowsAffected = await _uow.SaveChangesAsync();
             if(rowsAffected != 1)
                 throw new DBOperationException("User info updating went wrong");
-        }
-
-        //не используется, заменен
-        public async Task DeleteUserInfoByUserIdAsync(int userInfoId)
-        {
-            await _uow.UsersInfo.DeleteUserInfoByUserInfoId(userInfoId);
-            var rowsAffected =  await _uow.SaveChangesAsync();
-            if (rowsAffected != 2)
-                throw new DBOperationException("User info deleting went wrong");
-        }
-
-        public async Task<bool> UserInfoExistsAsync(int userInfoId)
-        {
-            return await _uow.UsersInfo.UserInfoExistsAsync(userInfoId);
         }
     }
 }

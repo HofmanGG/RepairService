@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using static HelloSocNetw_PL.Infrastructure.PLEnums;
+using HelloSocNetw_PL.Infrastructure.Enums;
 
-namespace HelloSocNetw_PL.Models
+namespace HelloSocNetw_PL.Models.UserInfoModels
 {
     public class UserInfoModel
     {
-        public int UserInfoId { get; set; }
+        public long Id { get; set; }
 
         public Guid AppIdentityUserId { get; set; }
 
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
-        public PLGenderType Gender { get; set; }
+        public PLEnums.PLGenderType Gender { get; set; }
 
-        public int CountryId { get; set; }
+        public long CountryId { get; set; }
         public string CountryName { get; set; }
 
         public ICollection<string> Roles { get; set; }

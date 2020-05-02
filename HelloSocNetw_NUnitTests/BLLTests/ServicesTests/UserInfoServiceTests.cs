@@ -1,27 +1,22 @@
 ﻿using Moq;
 using HelloSocNetw_DAL.Interfaces;
-using BLL.ModelsDTO;
 using HelloSocNetw_DAL.Entities;
 using System.Threading.Tasks;
-using AutoMapper;
-using BLL.Services;
 using Xunit;
 using FluentAssertions;
 using AutoFixture;
-using AutoFixture.Xunit2;
-using HelloSocNetw_NUnitTests.BLLTests.ServicesTests;
-using AutoFixture.Kernel;
-using AutoFixture.AutoMoq;
+using HelloSocNetw_BLL.Services;
+using HelloSocNetw_NUnitTests.Config;
 
-namespace HelloSocNetw_NUnitTests.BLLTests.Services
+namespace HelloSocNetw_NUnitTests.BLLTests.ServicesTests
 {
     public class UserInfoServiceTests
     {
-        private readonly IFixture fixture;
+        private readonly IFixture _fixture;
 
         public UserInfoServiceTests()
         {
-            fixture = new Fixture();
+            _fixture = new Fixture();
         }
 
         [Theory, BLLAutoMoqData]
@@ -31,14 +26,14 @@ namespace HelloSocNetw_NUnitTests.BLLTests.Services
             UserInfoService sut)
         {
             //arrange
-            userInfoRepositoryMock.Setup(rep => rep.GetUserInfoByUserInfoIdAsync(It.IsAny<int>()))
+            userInfoRepositoryMock.Setup(rep => rep.GetUserInfoByUserInfoIdAsync(It.IsAny<long>()))
                 .ReturnsAsync(userInfo);
 
             //act
-            var returnedObject = await sut.GetUserInfoByUserInfoIdAsync(fixture.Create<int>());
+            var returnedUserInfo = await sut.GetUserInfoByUserInfoIdAsync(_fixture.Create<long>());
 
             //assert
-            userInfo.UserInfoId.Should().Be(returnedObject.UserInfoId);
+            userInfo.Id.Should().Be(returnedUserInfo.Id);
         }
     }
 }

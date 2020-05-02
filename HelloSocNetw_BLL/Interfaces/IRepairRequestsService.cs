@@ -1,31 +1,27 @@
 ﻿using HelloSocNetw_BLL.EntitiesDTO;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace HelloSocNetw_BLL.Interfaces
 {
     public interface IRepairRequestsService
     {
-        Task<RepairRequestDTO> GetRepairRequestByRepairRequestIdAsync(int id);
+        Task<RepairRequestDTO> GetRepReqByIdAsync(long repReqId);
 
-        Task<IEnumerable<RepairRequestDTO>> GetRepairRequestsByUserInfoIdAsync(int id);
+        Task<IEnumerable<RepairRequestDTO>> GetRepReqsByUserInfoIdAsync(long userInfoId);
 
-        Task<IEnumerable<RepairRequestDTO>> GetRepairRequestsByUserInfoIdAndAppIdentityUserIdAsync(int userInfoId, Guid appIdentityUserId);
+        Task<IEnumerable<RepairRequestDTO>> GetRepReqsByUserInfoIdAndIdentityIdAsync(long userInfoId, Guid identityId);
 
-        Task<RepairRequestDTO> GetRepairRequestByRepairRequestIdAndUserInfoIdAsync(int repairRequestId, int userInfoId);
+        Task<RepairRequestDTO> GetRepReqByIdAndUserInfoIdAsync(long repReqId, long userInfoId);
 
-        Task<int> GetCountOfRepairRequestsByUserInfoIdAsync(int id);
+        Task<long> GetCountOfRepReqsByUserInfoIdAsync(long userInfoId);
 
-        Task AddRepairRequestAsync(RepairRequestDTO repairRequest);
+        Task AddRepReqAsync(RepairRequestDTO repReqDto);
 
-        Task UpdateRepairRequestAsync(RepairRequestDTO newRepairRequestInfoDto);
+        Task UpdateRepReqAsync(RepairRequestDTO repReqDto);
 
-        Task DeleteRepairRequestByRepairRequestIdAsync(int repairRequestId);
-
-        Task<bool> RepairRequestExistsAsync(int id);
-
-        Task<bool> RepairRequestWithSuchRepairRequestIdAndUserInfoIdExistsAsync(int repairRequestId, int userInfoId);
+        Task DeleteRepReqByIdAndUserInfoIdAsync(long repReqId, long userInfoId);
     }
 }
+    

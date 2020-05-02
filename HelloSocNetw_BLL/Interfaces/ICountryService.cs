@@ -1,7 +1,5 @@
 ﻿using HelloSocNetw_BLL.EntitiesDTO;
-using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace HelloSocNetw_BLL.Interfaces
@@ -10,16 +8,12 @@ namespace HelloSocNetw_BLL.Interfaces
     {
         Task<IEnumerable<CountryDTO>> GetCountriesAsync();
 
-        Task<CountryDTO> GetCountryByCountryIdAsync(int countryId);
+        Task<CountryDTO> GetCountryByIdAsync(long countryId);
 
         Task AddCountryAsync(CountryDTO countryDto);
 
-        Task UpdateCountryAsync(CountryDTO newCountryInfoDto);
+        Task UpdateCountryAsync(CountryDTO countryDto);
 
-        Task DeleteCountryByCountryIdAsync(int countryId);
-
-        Task<bool> CountryWithSuchCountryIdExistsAsync(int countryId);
-
-        Task<bool> CountryWithSuchNameExistsAsync(string countryName);
+        Task DeleteCountryByIdAsync(long countryId);
     }
 }

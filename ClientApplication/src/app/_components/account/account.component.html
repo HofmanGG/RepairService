@@ -101,7 +101,7 @@
     <mat-select onmousedown="if(this.options.length>8){this.size=8;}" onchange="this.blur()"  onblur="this.size=0;" formControlName="countryId" class="form-control"
         [ngClass]="{ 'is-invalid': submitted && f.countryId.errors }">
         <mat-option value="" disabled>Choose your country</mat-option>
-        <mat-option *ngFor="let country of countryService.countries | async" [value]="country.countryId">
+        <mat-option *ngFor="let country of countryService.countries | async" [value]="country.id">
             {{country.countryName}}
         </mat-option>
     </mat-select>

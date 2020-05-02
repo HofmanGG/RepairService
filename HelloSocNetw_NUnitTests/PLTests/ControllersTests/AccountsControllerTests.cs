@@ -1,32 +1,27 @@
-﻿using System;
-using System.Collections.Specialized;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.Xunit2;
-using AutoMapper;
 using BLL.ModelsDTO;
 using FluentAssertions;
 using HelloSocNetw_BLL.EntitiesDTO;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_NUnitTests.Config;
-using HelloSocNetw_PL.Infrastructure.Interfaces;
+using HelloSocNetw_PL.Controllers;
 using HelloSocNetw_PL.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Moq;
-using PL.Controllers;
 using Xunit;
 
 namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
 {
     public class AccountsControllerTests
     {
-        private readonly IFixture fixture;
+        private readonly IFixture _fixture;
 
         public AccountsControllerTests()
         {
-            fixture = new Fixture();
+            _fixture = new Fixture();
         }
 
         [Theory, PLAutoMoqData]
@@ -35,7 +30,7 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
             [Frozen]Mock<IIdentityUserService> identityUserServiceMock,
             [Greedy]AccountsController sut)
         {
-            //arrrange
+            //arrange
             identityUserServiceMock.Setup(svc => svc.Authenticate(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync((AppIdentityUserDTO)null);
 
@@ -54,7 +49,7 @@ namespace HelloSocNetw_NUnitTests.PLTests.ControllersTests
             [Frozen]Mock<IIdentityUserService> identityUserServiceMock,
             [Greedy]AccountsController sut)
         {
-            //arrrange
+            //arrange
             identityUserServiceMock.Setup(svc => svc.Authenticate(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(appIdentityUserDto);
 

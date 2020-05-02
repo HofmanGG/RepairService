@@ -1,8 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
-using HelloSocNetw_DAL.Entities;
-using HelloSocNetw_DAL.Identity;
-using Microsoft.AspNetCore.Identity;
+﻿using System.Threading.Tasks;
+using HelloSocNetw_DAL.Interfaces.Repositories;
 
 namespace HelloSocNetw_DAL.Interfaces
 {

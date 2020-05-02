@@ -16,12 +16,13 @@ namespace HelloSocNetw_BLL.Services
             _emailSettings = emailSettings.Value;
         }
 
-        public async Task SendEmailAsync(string email, string subject, string htmlMessage)
+        public async Task SendEmailAsync(string receiverEmail, string subject, string htmlMessage)
         {
             var emailMessage = new MimeMessage();
 
-            emailMessage.From.Add(new MailboxAddress("Repair Site", _emailSettings.Sender));
-            emailMessage.To.Add(new MailboxAddress("", email));
+            emailMessage.From.Add(new MailboxAddress(_emailSettings.FromName, _emailSettings.SenderEmail));
+            emailMessage.To.Add(new MailboxAddress(_emailSettings.ToName, receiverEmail));
+
             emailMessage.Subject = subject;
             emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
             {
@@ -29,8 +30,9 @@ namespace HelloSocNetw_BLL.Services
             };
 
             using var client = new SmtpClient();
-            await client.ConnectAsync(_emailSettings.MailServer, _emailSettings.MailPort, false);
-            await client.AuthenticateAsync(_emailSettings.Sender, _emailSettings.Password);
+
+            await client.ConnectAsync(_emailSettings.MailHost, _emailSettings.MailPort, false);
+            await client.AuthenticateAsync(_emailSettings.SenderEmail, _emailSettings.SenderPassword);
             await client.SendAsync(emailMessage);
 
             await client.DisconnectAsync(true);

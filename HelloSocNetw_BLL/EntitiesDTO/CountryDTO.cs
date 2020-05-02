@@ -2,7 +2,7 @@
 {
     public class CountryDTO
     {
-        public int CountryId { get; set; }
+        public long Id { get; set; }
         
         public string CountryName { get; set; }
     }

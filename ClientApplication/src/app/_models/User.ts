@@ -1,5 +1,5 @@
 export interface User {
-   userInfoId: number;
+   id: number;
 
    appIdentityUserId: string;
 

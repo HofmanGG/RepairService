@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HelloSocNetw_PL.Models
+namespace HelloSocNetw_PL.Models.RoleModels
 {
     public class RoleModel
     {

@@ -47,7 +47,7 @@ export class UpdDelRepairRequestComponent implements OnInit {
     createForms(repairRequest: RepairRequest): FormGroup {
       const formGroup: FormGroup = this.fb.group(
         {
-          repairRequestId: [repairRequest.repairRequestId],
+          id: [repairRequest.id],
 
           productName: [repairRequest.productName, [Validators.required, Validators.minLength(4), Validators.maxLength(40)]],
           comment: [repairRequest.comment, [Validators.required, Validators.minLength(4), Validators.maxLength(100)]],
@@ -113,7 +113,7 @@ export class UpdDelRepairRequestComponent implements OnInit {
 
       const repairRequest: UpdateRepairRequest = this.f.at(index).value;
       this.repairRequestService
-        .updateRepairRequest(this.userInfoIdParam, repairRequest.repairRequestId, repairRequest)
+        .updateRepairRequest(this.userInfoIdParam, repairRequest.id, repairRequest)
       .pipe(first())
       .subscribe(
         data => {
@@ -145,7 +145,7 @@ export class UpdDelRepairRequestComponent implements OnInit {
 
       const repairRequest = this.f.at(index).value;
       this.repairRequestService
-        .deleteRepairRequest(this.userInfoIdParam, repairRequest.repairRequestId)
+        .deleteRepairRequest(this.userInfoIdParam, repairRequest.id)
         .pipe(first())
         .subscribe(
           data => { 

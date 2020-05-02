@@ -6,11 +6,8 @@ using BLL.ModelsDTO;
 using HelloSocNetw_DAL.Entities;
 using HelloSocNetw_DAL.Interfaces;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace HelloSocNetw_NUnitTests.BLLTests.ServicesTests
+namespace HelloSocNetw_NUnitTests.Config
 {
     public class BLLAutoMoqDataAttribute : AutoDataAttribute
     {
@@ -25,7 +22,7 @@ namespace HelloSocNetw_NUnitTests.BLLTests.ServicesTests
 
                 fixture.Freeze<Mock<IMapper>>()
                    .Setup(m => m.Map<UserInfoDTO>(It.IsAny<UserInfo>()))
-                   .Returns<UserInfo>(ui => new UserInfoDTO() { UserInfoId = ui.UserInfoId });
+                   .Returns<UserInfo>(ui => new UserInfoDTO() { Id = ui.Id });
 
                 fixture.Freeze<Mock<IUserInfoRepository>>();
 

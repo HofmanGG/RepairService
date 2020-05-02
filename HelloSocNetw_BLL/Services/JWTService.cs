@@ -1,8 +1,5 @@
 ﻿using HelloSocNetw_BLL.Infrastructure;
 using HelloSocNetw_BLL.Interfaces;
-using HelloSocNetw_DAL.Entities;
-using HelloSocNetw_DAL.Interfaces;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -10,16 +7,18 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using HelloSocNetw_DAL.Entities.IdentityEntities;
+using HelloSocNetw_DAL.Interfaces.Identity;
 
 namespace HelloSocNetw_BLL.Services
 {
     public class JWTService: IJWTService
     {
-        private readonly UserManager<AppIdentityUser> _userManager;
+        private readonly IUserManager _userMgr;
 
-        public JWTService(UserManager<AppIdentityUser> userManager)
+        public JWTService(IUserManager userManager)
         {
-            _userManager = userManager;
+            _userMgr = userManager;
         }
 
         public async Task<string> GetJwtTokenAsync(AppIdentityUser appIdentityUser)
@@ -46,7 +45,7 @@ namespace HelloSocNetw_BLL.Services
             };
             var claimsIdentity = new ClaimsIdentity(claims, "Token");
 
-            var roles = await _userManager.GetRolesAsync(user);
+            var roles = await _userMgr.GetRolesAsync(user);
 
             claimsIdentity.AddClaims(roles.Select(role => new Claim(ClaimTypes.Role, role)));
             return claimsIdentity;

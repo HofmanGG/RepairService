@@ -9,14 +9,10 @@ namespace HelloSocNetw_BLL.Interfaces
     {
         Task<IEnumerable<AppRoleDTO>> GetRolesAsync();
 
-        Task CreateRole(string roleName);
+        Task CreateRoleAsync(string roleName);
 
         Task UpdateRoleAsync(AppRoleDTO roleToUpdateDto);
 
-        Task DeleteRoleAsync(string roleId);
-
-        Task<bool> RoleWithSuchIdExistsAsync(Guid id);
-
-        Task<bool> RoleWithSuchNameExistsAsync(string roleName);
+        Task DeleteRoleAsync(Guid roleId);
     }
 }

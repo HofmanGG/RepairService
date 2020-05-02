@@ -18,7 +18,7 @@ export class HomeRequestsComponent implements OnInit {
     private authSvc: AuthenticationService) { }
 
   ngOnInit() {
-    this.userInfoId = this.authSvc.currentUserValue.userInfoId;
+    this.userInfoId = this.authSvc.currentUserValue.id;
 
     this.repairRequestService.getRepairRequests(this.userInfoId)
     .subscribe(rr =>

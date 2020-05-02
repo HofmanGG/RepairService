@@ -1,9 +1,5 @@
 ﻿using FluentValidation;
 using HelloSocNetw_PL.Models.RepairRequestModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace HelloSocNetw_PL.Validators.RepairRequestModelsValidators
 {
@@ -11,7 +7,7 @@ namespace HelloSocNetw_PL.Validators.RepairRequestModelsValidators
     {
         public UpdateRepairRequestModelValidator()
         {
-            RuleFor(rr => rr.RepairRequestId)
+            RuleFor(rr => rr.Id)
                 .NotEmpty();
 
             RuleFor(rr => rr.Comment)

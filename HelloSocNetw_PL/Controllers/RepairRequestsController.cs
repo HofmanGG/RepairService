@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using HelloSocNetw_BLL.EntitiesDTO;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_PL.Infrastructure;
-using HelloSocNetw_PL.Infrastructure.Interfaces;
-using HelloSocNetw_PL.Models;
+using HelloSocNetw_PL.Interfaces;
 using HelloSocNetw_PL.Models.RepairRequestModels;
-using HelloSocNetw_PL.Validators;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -39,7 +35,7 @@ namespace HelloSocNetw_PL.Controllers
         }
 
         /// <summary>
-        /// Returnes repair requests
+        /// Returns repair requests
         /// </summary>
         /// <remarks>
         /// Sample request:
@@ -49,33 +45,33 @@ namespace HelloSocNetw_PL.Controllers
         ///     }
         ///
         /// </remarks>
-        /// <response code="200">Returnes repair requests</response>
+        /// <response code="200">Returns repair requests</response>
         /// <response code="500">If an exception on server is thrown</response>
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(200)]
-        public async Task<ActionResult<IEnumerable<RepairRequestModel>>> GetRepairRequestsByUserInfoIdAsync(int userId)
+        public async Task<ActionResult<IEnumerable<RepairRequestModel>>> GetRepairRequestsByUserInfoIdAsync(long userId)
         {
             if (!User.Identity.IsAuthenticated)
                 return Forbid();
             
-            IEnumerable<RepairRequestDTO> repairRequestsDto;
+            IEnumerable<RepairRequestDTO> repReqsDto;
             if (User.IsInRole("Manager") || User.IsInRole("Admin"))
             {
-                repairRequestsDto = await _repReqSvc.GetRepairRequestsByUserInfoIdAsync(userId);
+                repReqsDto = await _repReqSvc.GetRepReqsByUserInfoIdAsync(userId);
             }
             else
             {
                 var identityUserId = _curUserSvc.UserId;
-                repairRequestsDto = await _repReqSvc.GetRepairRequestsByUserInfoIdAndAppIdentityUserIdAsync(userId, identityUserId);
+                repReqsDto = await _repReqSvc.GetRepReqsByUserInfoIdAndIdentityIdAsync(userId, identityUserId);
             }
 
-            var repairRequestsModels = _mpr.Map<IEnumerable<RepairRequestModel>>(repairRequestsDto);
-            return repairRequestsModels.ToList();
+            var repReqsModels = _mpr.Map<IEnumerable<RepairRequestModel>>(repReqsDto);
+            return repReqsModels.ToList();
         }
 
         /// <summary>
-        /// Returnes count of repair requests
+        /// Returns count of repair requests
         /// </summary>
         /// <remarks>
         /// Sample request:
@@ -85,13 +81,13 @@ namespace HelloSocNetw_PL.Controllers
         ///     }
         ///
         /// </remarks>
-        /// <response code="200">Returnes count</response>
+        /// <response code="200">Returns count</response>
         /// <response code="500">If an exception on server is thrown</response>
         [HttpGet("count")]
         [ProducesResponseType(200)]
-        public async Task<ActionResult<int>> GetCountOfRepairRequestsByUserInfoIdAsync(int userId)
+        public async Task<ActionResult<long>> GetCountOfRepairRequestsByUserInfoIdAsync(long userId)
         {
-            var count = await _repReqSvc.GetCountOfRepairRequestsByUserInfoIdAsync(userId);
+            var count = await _repReqSvc.GetCountOfRepReqsByUserInfoIdAsync(userId);
             return count;
         }
 
@@ -114,12 +110,12 @@ namespace HelloSocNetw_PL.Controllers
         /// <response code="500">If an exception on server is thrown</response>
         [HttpPost]
         [ProducesResponseType(204), ProducesResponseType(400)]
-        public async Task<IActionResult> AddRepairRequestAsync(int userId, NewRepairRequestModel repairRequestModel)
+        public async Task<IActionResult> AddRepairRequestAsync(long userId, NewRepairRequestModel repairRequestModel)
         {
             var repairRequestDto = _mpr.Map<RepairRequestDTO>(repairRequestModel);
             repairRequestDto.UserInfoId = userId;
 
-            await _repReqSvc.AddRepairRequestAsync(repairRequestDto);
+            await _repReqSvc.AddRepReqAsync(repairRequestDto);
 
             return NoContent();
         }
@@ -145,16 +141,16 @@ namespace HelloSocNetw_PL.Controllers
         /// <response code="500">If an exception on server is thrown</response>
         [HttpPut("{repairRequestId}")]
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(404)]
-        public async Task<IActionResult> UpdateRepairRequestAsync(int userId, int repairRequestId, UpdateRepairRequestModel repairRequestModel) 
+        public async Task<IActionResult> UpdateRepairRequestAsync(long userId, long repairRequestId, UpdateRepairRequestModel repairRequestModel) 
         {
-            if (repairRequestId != repairRequestModel.RepairRequestId)
+            if (repairRequestId != repairRequestModel.Id)
                 return BadRequest();
 
             var repairRequestDto = _mpr.Map<RepairRequestDTO>(repairRequestModel);
             repairRequestDto.UserInfoId = userId;
-            repairRequestDto.RepairRequestId = repairRequestId;
+            repairRequestDto.Id = repairRequestId;
 
-            await _repReqSvc.UpdateRepairRequestAsync(repairRequestDto);
+            await _repReqSvc.UpdateRepReqAsync(repairRequestDto);
 
             return NoContent();
         }
@@ -170,15 +166,15 @@ namespace HelloSocNetw_PL.Controllers
         ///     }
         ///
         /// </remarks>
-        /// <response code="204">If repair request is successfullt deleted</response>
+        /// <response code="204">If repair request is successfully deleted</response>
         /// <response code="400">If repair request</response>
         /// <response code="404">If repair request is not deleted</response>
         /// <response code="500">If an exception on server is thrown</response>
         [HttpDelete("{repairRequestId}")]
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(404)]
-        public async Task<IActionResult> DeleteRepairRequestByIdAsync(int userId, int repairRequestId)
+        public async Task<IActionResult> DeleteRepairRequestByIdAsync(long userId, long repairRequestId)
         {
-            await _repReqSvc.DeleteRepairRequestByRepairRequestIdAsync(repairRequestId);
+            await _repReqSvc.DeleteRepReqByIdAndUserInfoIdAsync(userId, repairRequestId);
 
             return NoContent();
         }

@@ -1,13 +1,10 @@
-﻿using HelloSocNetw_DAL.Identity;
+﻿using HelloSocNetw_DAL.Entities.IdentityEntities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace HelloSocNetw_DAL.Configurations.Many_to_many_tables_configs
+namespace HelloSocNetw_DAL.Configurations
 {
-    class AppUserRoleConfiguration : IEntityTypeConfiguration<AppUserRole>
+    public class AppUserRoleConfiguration : IEntityTypeConfiguration<AppUserRole>
     {
         public void Configure(EntityTypeBuilder<AppUserRole> builder)
         {

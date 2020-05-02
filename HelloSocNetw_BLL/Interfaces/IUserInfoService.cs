@@ -1,32 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using BLL.ModelsDTO;
-using HelloSocNetw_BLL.EntitiesDTO;
-using HelloSocNetw_DAL.Entities;
 
 namespace HelloSocNetw_BLL.Interfaces
 {
     public interface IUserInfoService
     {
-        Task<UserInfoDTO> GetUserInfoByUserInfoIdAsync(int id);
+        Task<UserInfoDTO> GetUserInfoByIdAsync(long id);
 
-        Task<UserInfoDTO> GetUserInfoByAppIdentityIdAsync(Guid appIdentityUserId);
+        Task<UserInfoDTO> GetUserInfoByIdentityIdAsync(Guid appIdentityUserId);
 
         Task<IEnumerable<UserInfoDTO>> GetUsersInfoAsync(int toSkip, int toTake);
 
-        Task<int> GetUserInfoIdByEmailAsync(string email);
+        Task<long> GetUserInfoIdByEmailAsync(string email);
 
-        Task<int> GetCountOfUsersInfoAsync();
+        Task<long> GetCountOfUsersInfoAsync();
+
 
         Task AddUserInfoAsync(UserInfoDTO userInfoDto);
 
         Task UpdateUserInfoAsync(UserInfoDTO newUserInfoDto);
-
-        Task DeleteUserInfoByUserIdAsync(int userInfoId);
-
-        Task<bool> UserInfoExistsAsync(int userInfoId);
     }
 }

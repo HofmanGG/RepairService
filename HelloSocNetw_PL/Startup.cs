@@ -1,8 +1,4 @@
-﻿using HelloSocNetw_BLL.Entities;
-using HelloSocNetw_PL.Infrastructure;
-using HelloSocNetw_PL.Infrastructure.MapperProfiles;
-using HelloSocNetw_PL.Infrastructure.Middlewares;
-using HelloSocNetw_PL.Infrastructure.StartupConfigurations;
+﻿using HelloSocNetw_PL.Infrastructure.StartupConfigurations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -28,15 +24,14 @@ namespace HelloSocNetw_PL
             services.AddHttpContextAccessor();
             services.AddConfiguredDependencies();
             services.AddConfiguredDBContext(Configuration);
-            services.AddConfiguredAutomapper();
+            services.AddConfiguredAutoMapper();
             services.AddConfiguredAuthorization();
             services.AddConfiguredAuthentication();
             services.AddConfiguredControllers();
             services.AddConfiguredSwagger();
             services.AddConfiguredResponseCaching();
             services.AddConfiguredLogging();
-            services.AddOptions();
-            services.Configure<EmailSettings>(Configuration.GetSection("EmailSettings"));
+            services.AddConfiguredOptions(Configuration);
         }
         
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,9 +46,6 @@ namespace HelloSocNetw_PL
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
-            app.UseCustomDatabaseSeeding();
-            app.UseCustomExceptionHandler();
 
             app.UseHttpsRedirection();
             app.UseDefaultFiles();

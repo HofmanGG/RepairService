@@ -1,18 +1,14 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.Swagger;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace HelloSocNetw_PL.Infrastructure.StartupConfigurations
 {
     public static class SwaggerConfiguration
     {
-        public static void AddConfiguredSwagger(this IServiceCollection services)
+        public static IServiceCollection AddConfiguredSwagger(this IServiceCollection services)
         {
             services.AddSwaggerGen(c =>
             {  
@@ -26,6 +22,8 @@ namespace HelloSocNetw_PL.Infrastructure.StartupConfigurations
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
+
+            return services;
         }
     }
 }

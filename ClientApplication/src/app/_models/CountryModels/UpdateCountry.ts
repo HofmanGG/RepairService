@@ -1,5 +1,5 @@
 export interface UpdateCountry {
-    countryId: number;
+    id: number;
 
     countryName: string;
   }

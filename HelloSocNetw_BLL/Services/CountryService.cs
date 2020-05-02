@@ -4,11 +4,8 @@ using HelloSocNetw_BLL.Infrastructure;
 using HelloSocNetw_BLL.Infrastructure.Exceptions;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_DAL.Entities;
-using HelloSocNetw_DAL.Infrastructure.Exceptions;
 using HelloSocNetw_DAL.Interfaces;
-using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace HelloSocNetw_BLL.Services
@@ -31,68 +28,67 @@ namespace HelloSocNetw_BLL.Services
             return countriesDto;
         }
 
-        public async Task<CountryDTO> GetCountryByCountryIdAsync(int countryId)
+        public async Task<CountryDTO> GetCountryByIdAsync(long countryId)
         {
             var country = await _uow.Countries.GetCountryByIdAsync(countryId);
-            if (country == null)
-                return null;
-
             var countryDto = _mpr.Map<CountryDTO>(country);
             return countryDto;
         }
 
         public async Task AddCountryAsync(CountryDTO countryDto)
         {
-            var doesCountryWithSuchNameAlredyExist = await _uow.Countries
-                .CountryExistsAsync(c => c.CountryName == countryDto.CountryName);
-
-            if (doesCountryWithSuchNameAlredyExist)
-                throw new ConflictException(nameof(Country), countryDto.CountryName);
+            await ThrowIfCountryWithSuchNameExistsAsync(countryDto.CountryName);
 
             var country = _mpr.Map<Country>(countryDto);
 
             _uow.Countries.AddCountry(country);
+
             var rowsAffected = await _uow.SaveChangesAsync();
             if (rowsAffected != 1)
                 throw new DBOperationException("Country adding went wrong");
         }
 
-        public async Task DeleteCountryByCountryIdAsync(int countryId)
+        public async Task DeleteCountryByIdAsync(long countryId)
         {
+            await ThrowIfCountryWithSuchIdDoesNotExistAsync(countryId);
+
             await _uow.Countries.DeleteCountryByIdAsync(countryId);
+
             var rowsAffected =  await _uow.SaveChangesAsync();
             if (rowsAffected != 1)
                 throw new DBOperationException("Country deleting went wrong");
         }
 
-        public async Task UpdateCountryAsync(CountryDTO newCountryInfoDto)
+        private async Task ThrowIfCountryWithSuchIdDoesNotExistAsync(long countryId)
         {
-            var countryToChange = await _uow.Countries.GetCountryByIdAsync(newCountryInfoDto.CountryId);
-            if (countryToChange == null)
-                throw new NotFoundException(nameof(Country), newCountryInfoDto.CountryId);
+            var countryExists = await _uow.Countries.CountryExistsByIdAsync(countryId);
 
-            var doesCountryWithSuchNameAlredyExist = await _uow.Countries
-                .CountryExistsAsync(c => c.CountryName == newCountryInfoDto.CountryName);
+            if (!countryExists)
+                throw new NotFoundException(nameof(Country), countryId);
+        }
 
-            if (doesCountryWithSuchNameAlredyExist)
-                throw new ConflictException(nameof(Country), newCountryInfoDto.CountryName);
+        private async Task ThrowIfCountryWithSuchNameExistsAsync(string name)
+        {
+            var countryExists = await _uow.Countries
+                .CountryExistsByNameAsync(name);
 
-            countryToChange.CountryName = newCountryInfoDto.CountryName;
+            if (countryExists)
+                throw new ConflictException(nameof(Country), name);
+        }
 
-            _uow.Countries.UpdateCountryAsync(countryToChange);
+        public async Task UpdateCountryAsync(CountryDTO countryDto)
+        {
+            await ThrowIfCountryWithSuchIdDoesNotExistAsync(countryDto.Id);
+
+            await ThrowIfCountryWithSuchNameExistsAsync(countryDto.CountryName);
+
+            var country = _mpr.Map<Country>(countryDto);
+
+            await _uow.Countries.UpdateCountryAsync(country);
+
             var rowsAffected = await _uow.SaveChangesAsync();
             if (rowsAffected != 1)
                 throw new DBOperationException("Country updating went wrong");
-        }
-
-        public async Task<bool> CountryWithSuchCountryIdExistsAsync(int countryId)
-        {
-            return await _uow.Countries.CountryExistsAsyncByCountryId(countryId);
-        }
-
-        public async Task<bool> CountryWithSuchNameExistsAsync(string countryName)
-        {
-            return await _uow.Countries.CountryExistsAsync(c => c.CountryName == countryName);
         }
     }
 }

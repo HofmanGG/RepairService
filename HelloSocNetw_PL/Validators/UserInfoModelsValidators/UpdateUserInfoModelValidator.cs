@@ -8,7 +8,7 @@ namespace HelloSocNetw_PL.Validators.UserInfoModelsValidators
     {
         public UpdateUserInfoModelValidator()
         {
-            RuleFor(u => u.UserInfoId)
+            RuleFor(u => u.Id)
                 .NotEmpty();
 
             RuleFor(u => u.AppIdentityUserId)

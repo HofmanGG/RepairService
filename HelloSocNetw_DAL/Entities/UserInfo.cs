@@ -1,34 +1,35 @@
-﻿
+﻿using HelloSocNetw_DAL.Infrastructure.Attributes;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using static HelloSocNetw_DAL.Infrastructure.DALEnums;
+using HelloSocNetw_DAL.Entities.IdentityEntities;
+using HelloSocNetw_DAL.Infrastructure.Enums;
+using HelloSocNetw_DAL.Interfaces;
 
 namespace HelloSocNetw_DAL.Entities
 {
-    public class UserInfo
+    [Auditable]
+    public class UserInfo: IEntity
     {
         public UserInfo()
         {
-            RepairRequests = new HashSet<RepairRequest>();
+            RepairRequests = new List<RepairRequest>();
         }
 
-        public int UserInfoId { get; set; }
+        public long Id { get; set; }
 
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
         public DateTime DateOfBirth { get; set; }
 
-        public DALGenderType Gender { get; set; }
+        public DALEnums.DALGenderType Gender { get; set; }
 
-        public int CountryId { get; set; }
-        public virtual Country Country { get; set; }
+        public long CountryId { get; set; }
+        public Country Country { get; set; }
 
-        public virtual ICollection<RepairRequest> RepairRequests { get; set; }
+        public ICollection<RepairRequest> RepairRequests { get; set; }
 
         public Guid AppIdentityUserId { get; set; }
-        public virtual AppIdentityUser AppIdentityUser { get; set; }
+        public AppIdentityUser AppIdentityUser { get; set; }
     }
 }

@@ -2,12 +2,9 @@
 using HelloSocNetw_BLL.EntitiesDTO;
 using HelloSocNetw_BLL.Interfaces;
 using HelloSocNetw_PL.Infrastructure;
-using HelloSocNetw_PL.Infrastructure.Interfaces;
-using HelloSocNetw_PL.Models;
+using HelloSocNetw_PL.Interfaces;
 using HelloSocNetw_PL.Models.RoleModels;
-using HelloSocNetw_PL.Validators;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -48,7 +45,7 @@ namespace HelloSocNetw_PL.Controllers
         ///     }
         ///
         /// </remarks>
-        /// <response code="200">Returnes all roles</response>
+        /// <response code="200">Returns all roles</response>
         /// <response code="500">If an exception on server is thrown</response>
         [HttpGet]
         [ProducesResponseType(200)]
@@ -80,7 +77,7 @@ namespace HelloSocNetw_PL.Controllers
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(409)]
         public async Task<IActionResult> CreateRole(NewRoleModel newRole)
         {
-            await _roleSvc.CreateRole(newRole.Name);
+            await _roleSvc.CreateRoleAsync(newRole.Name);
 
             return NoContent();
         }
@@ -100,7 +97,7 @@ namespace HelloSocNetw_PL.Controllers
         /// </remarks>
         /// <response code="204">if role is successfully updated</response>
         /// <response code="400">If model is not valid</response>
-        /// <response code="404">If role with roleId doesnot exist</response>
+        /// <response code="404">If role with roleId doesn't exist</response>
         /// <response code="409">If role with such name already exists</response>
         /// <response code="500">If an exception on server is thrown</response>
         [HttpPut("{roleId}")]
@@ -127,15 +124,15 @@ namespace HelloSocNetw_PL.Controllers
         ///     }
         ///
         /// </remarks>
-        /// <response code="204">Returnes all countries</response>
+        /// <response code="204">Returns all countries</response>
         /// <response code="400">If role is not deleted</response>
-        /// <response code="404">If role with such id doesnot exist</response>
+        /// <response code="404">If role with such id doesn't exist</response>
         /// <response code="500">If an exception on server is thrown</response>
         [HttpDelete("{roleId}")]
         [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(404)]
         public async Task<IActionResult> DeleteRole(Guid roleId)
         {
-            await _roleSvc.DeleteRoleAsync(roleId.ToString());
+            await _roleSvc.DeleteRoleAsync(roleId);
 
             return NoContent();
         }

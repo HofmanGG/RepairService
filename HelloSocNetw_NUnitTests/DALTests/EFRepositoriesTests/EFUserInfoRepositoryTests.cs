@@ -6,7 +6,6 @@ using HelloSocNetw_DAL;
 using HelloSocNetw_DAL.EFRepositories;
 using HelloSocNetw_DAL.Entities;
 using Microsoft.EntityFrameworkCore;
-using NUnit.Framework;
 
 namespace HelloSocNetw_NUnitTests.DALTests.EFRepositoriesTests
 {/*
@@ -92,7 +91,7 @@ namespace HelloSocNetw_NUnitTests.DALTests.EFRepositoriesTests
             {
                 var userInfoRep = new EfUserInfoRepository(context);
 
-                var userInfo = new UserInfo() {UserInfoId = 1, FirstName = "Stepan", LastName = "Ivanov"};
+                var userInfo = new UserInfo() {Id = 1, FirstName = "Stepan", LastName = "Ivanov"};
 
                 context.UsersInfo.Add(userInfo);
 

@@ -1,21 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AutoMapper;
 using BLL.ModelsDTO;
 using HelloSocNetw_BLL.Interfaces;
-using HelloSocNetw_DAL.Infrastructure.Exceptions;
 using HelloSocNetw_PL.Infrastructure;
-using HelloSocNetw_PL.Infrastructure.Interfaces;
-using HelloSocNetw_PL.Models;
+using HelloSocNetw_PL.Interfaces;
 using HelloSocNetw_PL.Models.UserInfoModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace PL.Controllers
+namespace HelloSocNetw_PL.Controllers
 {
     public class UsersController : ApiController
     {
@@ -37,7 +32,7 @@ namespace PL.Controllers
         }
 
         /// <summary>
-        /// Returnes userInfo by userId
+        /// Returns userInfo by userId
         /// </summary>
         /// <remarks>
         /// Sample request:
@@ -47,17 +42,14 @@ namespace PL.Controllers
         ///     }
         ///
         /// </remarks>
-        /// <response code="200">Returnes userInfo</response>
+        /// <response code="200">Returns userInfo</response>
         /// <response code="404">If userInfo with such userId is not found</response>
         /// <response code="500">If an exception on server is thrown</response>
         [HttpGet("{userInfoId}")]
         [ProducesResponseType(200), ProducesResponseType(404)]
-        public async Task<ActionResult<UserInfoModel>> GetUser(int userInfoId)
+        public async Task<ActionResult<UserInfoModel>> GetUser(long userInfoId)
         {
-            var userInfoDto = await _userInfoSvc.GetUserInfoByUserInfoIdAsync(userInfoId);
-            if (userInfoDto == null)
-                return NotFound();
-
+            var userInfoDto = await _userInfoSvc.GetUserInfoByIdAsync(userInfoId);
             var userInfoModel = _mpr.Map<UserInfoModel>(userInfoDto);
             return userInfoModel;
         }
@@ -73,12 +65,12 @@ namespace PL.Controllers
         ///     }
         ///
         /// </remarks>
-        /// <response code="200">Returnes userInfoId</response>
-        /// <response code="404">Returnes userInfo with such email is not found</response>
+        /// <response code="200">Returns userInfoId</response>
+        /// <response code="404">Returns userInfo with such email is not found</response>
         /// <response code="500">If an exception on server is thrown</response>
         [HttpGet("email")]
         [ProducesResponseType(200), ProducesResponseType(404)]
-        public async Task<ActionResult<int>> GetUserInfoIdByEmail(string email)
+        public async Task<ActionResult<long>> GetUserInfoIdByEmail(string email)
         {
             var id = await _userInfoSvc.GetUserInfoIdByEmailAsync(email);
             return id;
@@ -95,11 +87,11 @@ namespace PL.Controllers
         ///     }
         ///
         /// </remarks>
-        /// <response code="200">Returnes count of all users</response>
+        /// <response code="200">Returns count of all users</response>
         /// <response code="500">If an exception on server is thrown</response>
         [HttpGet("count")]
         [ProducesResponseType(200)]
-        public async Task<ActionResult<int>> GetCountOfUsers()
+        public async Task<ActionResult<long>> GetCountOfUsers()
         {
             var count =  await _userInfoSvc.GetCountOfUsersInfoAsync();
             return count;
@@ -116,17 +108,17 @@ namespace PL.Controllers
         ///     }
         ///
         /// </remarks>
-        /// <response code="200">Returnes total count of users</response>
+        /// <response code="200">Returns total count of users</response>
         /// <response code="500">If an exception on server is thrown</response>
         [HttpPut("{userInfoId}")]
         [AllowAnonymous]
         [ProducesResponseType(200), ProducesResponseType(400), ProducesResponseType(403), ProducesResponseType(404)]
-        public async Task<ActionResult<UserInfoModel>> ChangeUserInfo(int userInfoId, UpdateUserInfoModel userInfoModel)
+        public async Task<ActionResult<UserInfoModel>> ChangeUserInfo(long userInfoId, UpdateUserInfoModel userInfoModel)
         {
             if (!User.Identity.IsAuthenticated)
                 return Forbid();
 
-            if (userInfoId != userInfoModel.UserInfoId)
+            if (userInfoId != userInfoModel.Id)
                 return BadRequest();
 
             var authorizedUserId = _curUserSvc.UserId;
@@ -136,37 +128,10 @@ namespace PL.Controllers
 
             await _userInfoSvc.UpdateUserInfoAsync(newUserInfoDto);
 
-            var changedUserInfoDto = await _userInfoSvc.GetUserInfoByUserInfoIdAsync(userInfoId);
+            var changedUserInfoDto = await _userInfoSvc.GetUserInfoByIdAsync(userInfoId);
             var changedUserInfoModel = _mpr.Map<UserInfoModel>(changedUserInfoDto);
 
             return changedUserInfoModel;
-        }
-
-        //не используется, заменен Accounts.DeleteAccount
-        /// <summary>
-        /// Deletes user
-        /// </summary>
-        /// <remarks>
-        /// Sample request:
-        ///
-        ///     GET /confirmemail
-        ///     {
-        ///        "email": "example@gmail.com",
-        ///        "code": "alotofsymbols.............."
-        ///     }
-        ///
-        /// </remarks>
-        /// <response code="302">Redirectes to login page</response>
-        /// <response code="500">If an exception on server is thrown</response>'
-        /// 
-        [HttpDelete("{userInfoId}")]
-        [Authorize(Roles = "Admin")]
-        [ProducesResponseType(204), ProducesResponseType(400), ProducesResponseType(404)]
-        public async Task<IActionResult> DeleteUser(int userInfoId)
-        {
-            await _userInfoSvc.DeleteUserInfoByUserIdAsync(userInfoId);
-
-            return NoContent();
         }
     }   
 }

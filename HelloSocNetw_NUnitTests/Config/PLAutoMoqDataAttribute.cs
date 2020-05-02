@@ -4,11 +4,9 @@ using AutoFixture.Xunit2;
 using AutoMapper;
 using BLL.ModelsDTO;
 using HelloSocNetw_PL.Models;
+using HelloSocNetw_PL.Models.UserInfoModels;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace HelloSocNetw_NUnitTests.Config
 {
@@ -27,11 +25,11 @@ namespace HelloSocNetw_NUnitTests.Config
                     .Returns<RegisterModel>(rm => new UserInfoDTO());
 
                 mapperMock.Setup(m => m.Map<UserInfoModel>(It.IsAny<UserInfoDTO>()))
-                    .Returns<UserInfoDTO>(uid => new UserInfoModel() { UserInfoId = uid.UserInfoId });
+                    .Returns<UserInfoDTO>(uid => new UserInfoModel() { Id = uid.Id });
 
                 fixture.Freeze<Mock<HttpContext>>();
-
                 var httpContextMock = fixture.Create<Mock<HttpContext>>();
+
                 httpContextMock.Setup(hc => hc.Request)
                     .Returns(fixture.Create<HttpRequest>());
 

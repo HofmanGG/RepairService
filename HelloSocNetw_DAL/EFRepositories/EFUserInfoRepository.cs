@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HelloSocNetw_DAL.Entities;
-using HelloSocNetw_DAL.Infrastructure;
-using HelloSocNetw_DAL.Infrastructure.Exceptions;
-using HelloSocNetw_DAL.Interfaces;
+using HelloSocNetw_DAL.Interfaces.Repositories;
+using HelloSocNetw_DAL.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace HelloSocNetw_DAL.EFRepositories
@@ -15,29 +13,35 @@ namespace HelloSocNetw_DAL.EFRepositories
     public class EfUserInfoRepository : IUserInfoRepository
     {
         private readonly SocNetwContext _context;
-        private readonly IIncludesParser<UserInfo> _includesParser;
+        private readonly IIncludesParser _includesParser;
+        private readonly DbSet<UserInfo> _usersInfo;
 
-        public EfUserInfoRepository(DbContext dbContext, IIncludesParser<UserInfo> includesParser)
+        public EfUserInfoRepository(SocNetwContext dbContext, IIncludesParser includesParser)
         {
-            _context = dbContext as SocNetwContext;
+            _context = dbContext;
             _includesParser = includesParser;
+            _usersInfo = _context.UsersInfo;
         }
 
-        public async Task<UserInfo> GetUserInfoByUserInfoIdAsync(int userInfoId)
+        public async Task<UserInfo> GetUserInfoByIdAsync(long userInfoId)
         {
-            return await _context.UsersInfo.FindAsync(userInfoId);
+            return await _usersInfo
+                .Include(ui => ui.Country)
+                .FirstOrDefaultAsync(ui => ui.Id == userInfoId);
         }
 
-        public async Task<UserInfo> GetUserInfoByAppIdentityIdAsync(Guid appIdentityUserId)
+        public async Task<UserInfo> GetUserInfoByIdentityIdAsync(Guid appIdentityUserId)
         {
-            return await _context.UsersInfo
+            return await _usersInfo
                 .Include(u => u.Country)
+                .Include(u => u.AppIdentityUser.UserRoles)
+                    .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.AppIdentityUserId == appIdentityUserId);
         }
 
         public async Task<IEnumerable<UserInfo>> GetUsersInfoAsync(int toSkip, int toTake)
         {
-            return await _context.UsersInfo
+            return await _usersInfo
                 .Skip(toSkip)
                 .Take(toTake)
                 .ToListAsync();
@@ -45,7 +49,7 @@ namespace HelloSocNetw_DAL.EFRepositories
 
         public async Task<UserInfo> GetUserInfoAsync(Expression<Func<UserInfo, bool>> filter, string includeProperties = "")
         {
-            var query = _context.UsersInfo.AsQueryable();
+            var query = _usersInfo.AsQueryable();
 
             if (filter != null)
             {
@@ -56,12 +60,13 @@ namespace HelloSocNetw_DAL.EFRepositories
 
             return await query.FirstOrDefaultAsync();
         }
+
         public async Task<IEnumerable<UserInfo>> GetUsersInfoAsync(
             Expression<Func<UserInfo, bool>> filter = null,
             Func<IQueryable<UserInfo>, IOrderedQueryable<UserInfo>> orderBy = null,
             string includeProperties = "")
         {
-            var query = _context.UsersInfo.AsQueryable();
+            var query = _usersInfo.AsQueryable();
 
             if (filter != null)
             {
@@ -74,70 +79,54 @@ namespace HelloSocNetw_DAL.EFRepositories
             {
                 return await orderBy(query).ToListAsync();
             }
-            else
-            {
-                return await query.ToListAsync();
-            }
+
+            return await query.ToListAsync();
         }
 
-        public async Task<TType> GetAsync<TType>(Expression<Func<UserInfo, bool>> filter, Expression<Func<UserInfo, TType>> select) where TType : class
+        public async Task<UserInfo> GetUserInfoByEmailAsync(string email)
         {
-            var foundObject = await _context.UsersInfo.Where(filter).Select(select).FirstOrDefaultAsync();
-            if (foundObject == null)
-                throw new NotFoundException(nameof(UserInfo), filter);
-            else
-                return foundObject;
+            var userInfo = await _usersInfo.FirstOrDefaultAsync(u => u.AppIdentityUser.Email == email);
+            return userInfo;
         }
 
-        public async Task<int> GetUserInfoIdByEmailAsync(string email)
+        public async Task<long> GetCountOfUsersInfoAsync()
         {
-            return await _context.UsersInfo
-                .Where(u => u.AppIdentityUser.Email == email)
-                .Select(u => u.UserInfoId)
-                .FirstOrDefaultAsync();
-        }
-
-        public async Task<int> GetCountOfUsersInfoAsync()
-        {
-            return await _context.UsersInfo.CountAsync();
+            var count = await _usersInfo.CountAsync();
+            return count;
         }
 
         public void AddUserInfo(UserInfo userInfoToAdd)
         {
-            _context.UsersInfo.Add(userInfoToAdd);
+            _usersInfo.Add(userInfoToAdd);
         }
 
-        public void AddUsersInfo(IEnumerable<UserInfo> usersInfoToAdd)
+        public async Task DeleteUserInfoById(long userInfoId)
         {
-            _context.UsersInfo.AddRange(usersInfoToAdd);
+            var userInfoToDelete = await _usersInfo.FindAsync(userInfoId);
+            _usersInfo.Remove(userInfoToDelete);
+        }   
+
+        public async Task UpdateUserInfoAsync(UserInfo userInfo)
+        {
+            var userInfoToChange = await _usersInfo.FindAsync(userInfo.Id);
+
+            userInfoToChange.CountryId = userInfo.CountryId;
+            userInfoToChange.Gender = userInfo.Gender;
+            userInfoToChange.DateOfBirth = userInfo.DateOfBirth;
+            userInfoToChange.FirstName = userInfo.FirstName;
+            userInfoToChange.LastName = userInfo.LastName;
         }
 
-        public async Task DeleteUserInfoByUserInfoId(int userInfoId)
+        public async Task<bool> UserInfoExistsByIdAsync(long userInfoId)
         {
-            var userInfoToDelete = await _context.UsersInfo.FindAsync(userInfoId);
-            if (userInfoToDelete == null)
-                throw new NotFoundException(nameof(UserInfo), userInfoId);
-
-            _context.UsersInfo.Remove(userInfoToDelete);
+            var userInfoExists = await _usersInfo.AnyAsync(u => u.Id == userInfoId);
+            return userInfoExists;   
         }
 
-        public void DeleteUserInfo(UserInfo userInfoToDelete)
+        public async Task<bool> UserInfoExistsByIdAndIdentityIdAsync(long userInfoId, Guid appIdentityUserId)
         {
-            if (_context.Entry(userInfoToDelete).State == EntityState.Detached)
-            {
-                _context.UsersInfo.Attach(userInfoToDelete);
-            }
-            _context.UsersInfo.Remove(userInfoToDelete);
-        }
-
-        public void UpdateUserInfo(UserInfo userInfoToChange)
-        {
-            _context.UsersInfo.Update(userInfoToChange);
-        }
-
-        public async Task<bool> UserInfoExistsAsync(int userInfoId)
-        {
-            return await _context.UsersInfo.AnyAsync(u => u.UserInfoId == userInfoId);
+            var userInfoExists = await _usersInfo.AnyAsync(u => u.Id == userInfoId && u.AppIdentityUserId == appIdentityUserId);
+            return userInfoExists;
         }
     }
 }

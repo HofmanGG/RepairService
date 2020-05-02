@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace HelloSocNetw_BLL.EntitiesDTO
 {
     public class AppIdentityUserDTO
     {
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
-        public int UserInfoId { get; set; }
+        public long UserInfoId { get; set; }
 
         public DateTimeOffset? LockoutEnd { get; set; }
         public bool TwoFactorEnabled { get; set; }

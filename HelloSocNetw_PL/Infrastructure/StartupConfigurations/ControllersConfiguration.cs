@@ -1,22 +1,23 @@
 ﻿using FluentValidation.AspNetCore;
+using HelloSocNetw_PL.Infrastructure.Filters;
 using HelloSocNetw_PL.Validators;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace HelloSocNetw_PL.Infrastructure
+namespace HelloSocNetw_PL.Infrastructure.StartupConfigurations
 {
     public static class ControllersConfiguration
     {
-        public static void AddConfiguredControllers(this IServiceCollection services)
+        public static IServiceCollection AddConfiguredControllers(this IServiceCollection services)
         {
-            services.AddControllers()
+            services.AddControllers(options =>
+                {
+                    options.Filters.Add(new ModelValidatorFilter());
+                    //options.Filters.Add(new ApiExceptionFilter());
+                })
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.Formatting = Formatting.Indented;
@@ -25,6 +26,8 @@ namespace HelloSocNetw_PL.Infrastructure
                 })
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<LoginModelValidator>())
                 .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+
+            return services;
         }
     }
 }

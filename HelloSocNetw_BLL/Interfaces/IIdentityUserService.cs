@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using BLL.ModelsDTO;
 using HelloSocNetw_BLL.EntitiesDTO;
@@ -14,26 +12,24 @@ namespace HelloSocNetw_BLL.Interfaces
 
         Task<AppIdentityUserDTO> Authenticate(string email, string password);
 
-        Task UpdateUserInfoAsync(UserInfoDTO userInfoDto);
-
-        Task<AppIdentityUserDTO> FindByIdAsync(Guid appIdentityUserId);
+        Task<AppIdentityUserDTO> FindByIdAsync(Guid identityId);
 
         Task<string> GenerateEmailConfirmationTokenAsyncByEmail(string email);
 
-        Task<UserInfoDTO> GetUserInfoWithTokenAsync(AppIdentityUserDTO appIdentityUserDto);
+        Task<UserInfoDTO> GetUserInfoWithTokenAsync(AppIdentityUserDTO identityUserDto);
 
-        Task<UserInfoDTO> GetUserInfoByAppIdentityIdAsync(Guid appIdentityUserId);
+        Task<UserInfoDTO> GetUserInfoByIdentityIdAsync(Guid identityId);
 
         Task<bool> ConfirmEmailAsync(string email, string code);
 
         Task<bool> UserWithSuchEmailAlreadyExistsAsync(string email);
 
-        Task DeleteAccountByAppIdentityUserIdAsync(Guid appIdentityUserId);
+        Task DeleteAccountByIdentityIdAsync(Guid identityId);
 
-        Task DeleteAccountAsync(AppIdentityUserDTO appIdentityUserDto);
+        Task DeleteAccountAsync(AppIdentityUserDTO identityUserDto);
 
-        Task<bool> IsEmailConfirmedAsync(AppIdentityUserDTO appIdentityUserDto);
+        Task<bool> IsEmailConfirmedAsync(AppIdentityUserDTO identityUserDto);
 
-        Task<bool> IsLockedOutByEmailAsync(AppIdentityUserDTO appIdentityUserDto);
+        Task<bool> IsLockedOutByEmailAsync(AppIdentityUserDTO identityUserDto);
     }
 }

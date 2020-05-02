@@ -56,7 +56,7 @@ export class AccountComponent implements OnInit {
 
   ngOnInit() {
     this.changeInfoForm = this.fb.group({
-      userInfoId: [this.currentUser.userInfoId, [Validators.required]],
+      id: [this.currentUser.id, [Validators.required]],
       appIdentityUserId: [this.currentUser.appIdentityUserId, [Validators.required]],
       firstName: [this.currentUser.firstName, [
         Validators.required,
@@ -95,7 +95,7 @@ export class AccountComponent implements OnInit {
 
     this.loading = true;
 
-    this.userService.updateUser(this.changeInfoForm.value.userInfoId, this.changeInfoForm.value)
+    this.userService.updateUser(this.changeInfoForm.value.id, this.changeInfoForm.value)
       .pipe(first())
         .subscribe(
         data => {

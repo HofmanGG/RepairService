@@ -4,9 +4,11 @@ namespace HelloSocNetw_PL.Infrastructure.StartupConfigurations
 {
     public static class LoggingConfiguration
     {
-        public static void AddConfiguredLogging(this IServiceCollection services)
+        public static IServiceCollection AddConfiguredLogging(this IServiceCollection services)
         {
             services.AddLogging();
+
+            return services;
         }
     }
 }

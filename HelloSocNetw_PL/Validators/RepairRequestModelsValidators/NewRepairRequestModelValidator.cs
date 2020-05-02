@@ -1,9 +1,5 @@
 ﻿using FluentValidation;
-using HelloSocNetw_PL.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using HelloSocNetw_PL.Models.RepairRequestModels;
 
 namespace HelloSocNetw_PL.Validators.RepairRequestModelsValidators
 {

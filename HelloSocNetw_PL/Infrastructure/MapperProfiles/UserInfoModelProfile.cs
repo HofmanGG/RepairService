@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
 using BLL.ModelsDTO;
 using HelloSocNetw_BLL.Infrastructure;
-using HelloSocNetw_PL.Models;
 using HelloSocNetw_PL.Models.UserInfoModels;
 using System;
+using HelloSocNetw_BLL.Infrastructure.Enums;
+using HelloSocNetw_PL.Infrastructure.Enums;
 
 namespace HelloSocNetw_PL.Infrastructure.MapperProfiles
 {
